@@ -2,7 +2,7 @@
 
 Virga 是 QQNT 的纯色主题。雾白、石墨和雨青贯穿聊天、联系人、弹窗与 QQ 频道。
 
-[下载 Virga-0.1.17.zip](https://github.com/DrSmoothl/Virga/releases/download/v0.1.17/Virga-0.1.17.zip) · [查看版本](https://github.com/DrSmoothl/Virga/releases)
+[下载最新版](https://github.com/DrSmoothl/Virga/releases/latest) · [所有版本](https://github.com/DrSmoothl/Virga/releases)
 
 <img src="packages/plugin/assets/overview.png" alt="云下雨幕与 Virga 字标" width="680">
 
@@ -10,7 +10,7 @@ Virga 是 QQNT 的纯色主题。雾白、石墨和雨青贯穿聊天、联系�
 
 需要能正常加载插件的 [LiteLoaderQQNT](https://github.com/LiteLoaderQQNT/LiteLoaderQQNT)。
 
-1. 下载上面的 ZIP，在 LiteLoaderQQNT 的插件管理中导入。
+1. 在最新发布页的 **Assets** 中下载 `Virga-*.zip`，然后在 LiteLoaderQQNT 的插件管理中导入。
 2. 重启 QQ。在 QQ 设置侧栏打开 **Virga 悬雨**。也可以从 LiteLoaderQQNT 设置里的 **打开 Virga 设置** 进入。
 
 也可以手动安装。将 ZIP 内容解压到 LiteLoaderQQNT 的插件目录下的 `virga/`，确认 `manifest.json` 直接位于 `virga/` 中，然后重启 QQ。
