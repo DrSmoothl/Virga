@@ -1,0 +1,220 @@
+/* QQ uses token scopes on both the document and nested surfaces. */
+:root[data-virga],
+:root[data-virga]
+  :is(
+    .q-theme-tokens-light,
+    .q-theme-tokens-dark,
+      .need-token-updated,
+      .aio-mix-color,
+    [q-theme],
+    [data-theme="light"],
+    [data-theme="dark"],
+    [qq-theme="light"],
+    [qq-theme="dark"]
+  ) {
+  --brand_standard: var(--virga-accent) !important;
+  --border_brand: var(--virga-accent) !important;
+  --icon_brand: var(--virga-accent) !important;
+  --icon-brand: var(--virga-accent) !important;
+  --button-primary-bg: var(--virga-accent) !important;
+  --button-primary-text-white: var(--virga-on-accent) !important;
+  --on_brand_primary: var(--virga-on-accent) !important;
+  --on_brand_secondary: var(--virga-on-accent) !important;
+  --brand_text: var(--virga-link) !important;
+  --text_brand: var(--virga-link) !important;
+  --text_link: var(--virga-link) !important;
+  --text-brand: var(--virga-link) !important;
+  --text-link: var(--virga-link) !important;
+  --text_primary: var(--virga-text) !important;
+  --text_secondary: var(--virga-muted) !important;
+  --text_tertiary: var(--virga-muted) !important;
+  --icon_primary: var(--virga-text) !important;
+  --icon_secondary: var(--virga-muted) !important;
+  --bg_list: var(--virga-list) !important;
+  --bg_nav: var(--virga-rail) !important;
+  --bg_nav_secondary: var(--virga-list) !important;
+  --bg_bottom_standard: var(--virga-canvas) !important;
+  --bg_bottom_light: var(--virga-panel) !important;
+  --bg_top_standard: var(--virga-panel) !important;
+  --border_standard: var(--virga-line) !important;
+  --bubble_guest: var(--virga-incoming) !important;
+  --bubble_guest_text: var(--virga-incoming-text) !important;
+  --on_bubble_guest_text: var(--virga-incoming-text) !important;
+  --bubble_host: var(--virga-outgoing) !important;
+  --bubble_host_1: var(--virga-outgoing) !important;
+  --bubble_host_2: var(--virga-outgoing) !important;
+  --bubble_host_text: var(--virga-outgoing-text) !important;
+  --on_bubble_host_text: var(--virga-outgoing-text) !important;
+  --overlay_active_brand: var(--virga-selected) !important;
+}
+@layer virga-surfaces {
+  :root[data-virga] :is(.q-button--primary, .send-btn-wrap .send-btn)
+    :is(.q-button__slot-warp, .q-button__slot-wrap) {
+    color: inherit;
+  }
+  :root[data-virga] :is(.q-button--primary, .send-btn-wrap .send-btn):not(
+    :is(:disabled, [aria-disabled="true"], .q-button--disabled, .disabled, .q-button--danger)
+  ) {
+    background-color: var(--virga-accent) !important;
+    color: var(--virga-on-accent) !important;
+  }
+  :root[data-virga] .q-button--primary:not(
+    :is(:disabled, [aria-disabled="true"], .q-button--disabled, .disabled, .q-button--danger)
+  ):hover {
+    background-color: color-mix(in srgb, var(--virga-accent) 88%, var(--virga-on-accent)) !important;
+  }
+}
+:root[data-virga] :is(.sidebar-nav, .nav-bar-container) {
+  background-color: var(--virga-rail) !important;
+  color: var(--virga-rail-text) !important;
+  --icon_primary: var(--virga-rail-text) !important;
+  --icon_secondary: var(--virga-rail-text) !important;
+}
+:root[data-virga]
+  :is(.recent-contact, .contact-layout__left-area, [aria-label="会话列表"]) {
+  background-color: var(--virga-list) !important;
+  color: var(--virga-text);
+}
+:root[data-virga]
+  :is(.recent-contact-item--selected, .contact-item.list-item--selected),
+:root[data-virga]
+  :is(.recent-contact, [aria-label="会话列表"])
+  [aria-selected="true"] {
+  background-color: var(--virga-selected) !important;
+}
+:root[data-virga] :is(.chat-msg-area, .message-panel, [aria-label="消息列表"]) {
+  background-color: var(--virga-canvas) !important;
+  color: var(--virga-text);
+}
+:root[data-virga]
+  :is(
+    .contact-layout__content-area,
+    .setting-main,
+    .panel-header,
+    .contact-top-bar
+  ) {
+  background-color: var(--virga-panel) !important;
+  color: var(--virga-text);
+  border-color: var(--virga-line);
+}
+:root[data-virga]
+  :is(.message-content, .message)
+  :is(.text-element, .text-normal, .msg-text) {
+  font-family: var(--virga-font, inherit);
+  font-size: var(--virga-font-size) !important;
+  line-height: var(--virga-line-height) !important;
+}
+/* Text-only bubbles retain their native size and placement within the message row. */
+:root[data-virga]
+  :is(
+    .msg-content-container,
+    .message-content__wrapper:not(:has(.msg-content-container))
+  ):has(.text-element):not(
+    :has(
+      img,
+      video,
+      canvas,
+      .pic-element,
+      .file-element,
+      .ark-element,
+      .reply-element
+    )
+  ) {
+  border-radius: var(--virga-bubble-radius) !important;
+  padding-block: var(--virga-bubble-padding) !important;
+}
+:root[data-virga]
+  :is(
+    .msg-content-container.container--others,
+    :is(.message-peer, .message-other, .message-container--received)
+      :is(
+        .msg-content-container,
+        .message-content__wrapper:not(:has(.msg-content-container))
+      )
+  ):has(.text-element):not(
+    :has(
+      img,
+      video,
+      canvas,
+      .pic-element,
+      .file-element,
+      .ark-element,
+      .reply-element
+    )
+  ) {
+  background-color: var(--virga-incoming) !important;
+  color: var(--virga-incoming-text) !important;
+  border-start-start-radius: var(
+    --virga-person-corner,
+    var(--virga-bubble-radius)
+  ) !important;
+}
+:root[data-virga]
+  :is(
+    .msg-content-container.container--self,
+    :is(
+        .message-self,
+        .message-container--self,
+        .message--self,
+        .message-content--self
+      )
+      :is(
+        .msg-content-container,
+        .message-content__wrapper:not(:has(.msg-content-container))
+      )
+  ):has(.text-element):not(
+    :has(
+      img,
+      video,
+      canvas,
+      .pic-element,
+      .file-element,
+      .ark-element,
+      .reply-element
+    )
+  ) {
+  background-color: var(--virga-outgoing) !important;
+  color: var(--virga-outgoing-text) !important;
+  border-start-end-radius: var(
+    --virga-person-corner,
+    var(--virga-bubble-radius)
+  ) !important;
+}
+:root[data-virga] :is(.q-avatar__image, .avatar-img, .avatar img) {
+  border-radius: var(--virga-avatar-radius) !important;
+}
+:root[data-virga] :is(.q-button, .send-btn-wrap, .search-input) {
+  border-radius: var(--virga-control-radius) !important;
+}
+:root[data-virga] :is(.unread-count, .q-badge-num, .unread-badge) {
+  background-color: var(--virga-badge) !important;
+  color: var(--virga-badge-text) !important;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-virga] :is(.recent-contact-item, .contact-item, .q-button) {
+    transition-property: background-color, color, border-color;
+    transition-duration: var(--virga-duration);
+  }
+}
+
+:root[data-virga] :is([data-virga-side], [data-virga-roster]) {
+  background-color: var(--virga-list) !important;
+}
+:root[data-virga]
+  :is(.sidebar-nav, .nav-bar-container)
+  :is([aria-current="page"], [aria-checked="true"]) {
+  color: var(--virga-rail-text) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--virga-rail-text) 16%,
+    var(--virga-rail)
+  ) !important;
+  border-radius: var(--virga-control-radius);
+}
+:root[data-virga] :is(.panel-header, .contact-top-bar) {
+  box-shadow: inset 0 -1px var(--virga-line);
+}
+
+:root[data-virga][data-virga-bubbles="directional"] {
+  --virga-person-corner: min(5px, calc(var(--virga-bubble-radius) * 0.38));
+}

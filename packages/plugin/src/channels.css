@@ -1,0 +1,104 @@
+@layer virga-channel {
+  :root, body, .q-theme-tokens-dark, .q-theme-tokens-light {
+    --bg_bottom_standard: var(--virga-canvas) !important;
+    --bg_bottom_light: var(--virga-panel) !important;
+    --bg_top_standard: var(--virga-panel) !important;
+    --bg_nav: var(--virga-list) !important;
+    --bg_nav_secondary: var(--virga-list) !important;
+    --bg_list: var(--virga-list) !important;
+    --blur_middle_standard: var(--virga-panel) !important;
+    --fill_standard_primary: var(--virga-panel) !important;
+    --fill_light_primary: var(--virga-selected) !important;
+    --fill_light_secondary: var(--virga-panel) !important;
+    --text_primary: var(--virga-text) !important;
+    --text_secondary: var(--virga-muted) !important;
+    --text_tertiary: var(--virga-muted) !important;
+    --text_link: var(--virga-link) !important;
+    --text-brand: var(--virga-link) !important;
+    --text_brand: var(--virga-link) !important;
+    --brand_text: var(--virga-link) !important;
+    --icon_primary: var(--virga-text) !important;
+    --icon_secondary: var(--virga-muted) !important;
+    --icon-brand: var(--virga-accent) !important;
+    --brand_standard: var(--virga-accent) !important;
+    --on_brand_primary: var(--virga-on-accent) !important;
+    --on_brand_secondary: var(--virga-on-accent) !important;
+    --border_standard: var(--virga-line) !important;
+    --border_dark: var(--virga-line) !important;
+    --overlay_hover: color-mix(in srgb, var(--virga-selected) 63%, transparent) !important;
+    --overlay_active: var(--virga-selected) !important;
+    --overlay_active_brand: var(--virga-selected) !important;
+    --bubble_guest: var(--virga-incoming) !important;
+    --bubble_host: var(--virga-outgoing) !important;
+    --bubble_guest_text: var(--virga-incoming-text) !important;
+    --bubble_host_text: var(--virga-outgoing-text) !important;
+    --button-primary-bg: var(--virga-accent) !important;
+    --button-primary-text-white: var(--virga-on-accent) !important;
+    --button-primary-bg-hover: color-mix(in srgb, var(--virga-accent) 86%, var(--virga-on-accent)) !important;
+    --button-primary-bg-press: color-mix(in srgb, var(--virga-accent) 82%, var(--virga-canvas)) !important;
+    --button-secondary-bg: var(--virga-panel) !important;
+    --button-secondary-text: var(--virga-text) !important;
+    --button-secondary-bg-hover: var(--virga-selected) !important;
+    --item-border-radius: var(--virga-control-radius) !important;
+  }
+  :is(body, .app, .app-layout, .app-main, .explore-container, .main-layout, .feeds-container),
+  .layout > .q-miracle-background {
+    background: var(--virga-canvas) !important;
+    color: var(--virga-text) !important;
+  }
+  .layout > .colorful-dark-mode-overlay {
+    background: transparent !important;
+  }
+  :is(.app-aside, .aside-panel, .aside-scroll-view-container, .app-menu-list) {
+    background: var(--virga-list) !important;
+    color: var(--virga-text) !important;
+  }
+  .app-aside {
+    box-shadow: inset -1px 0 var(--virga-line);
+  }
+  :is(
+    .app-guild .app-aside > :has(+ .aside-scroll-view-container),
+    .app-guild .app-main :is(.explore-container .section-header, .channel-header)
+  ) {
+    box-sizing: border-box !important;
+    block-size: var(--virga-toolbar-height) !important;
+    min-block-size: var(--virga-toolbar-height) !important;
+    flex-shrink: 0 !important;
+    align-items: center !important;
+    padding-block: var(--virga-toolbar-padding-block) !important;
+  }
+  .app-guild .app-aside > :has(+ .aside-scroll-view-container) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: var(--virga-toolbar-padding-inline) !important;
+  }
+  .app-guild .app-main :is(.explore-container .section-header, .channel-header) {
+    display: flex !important;
+  }
+  :is(.app-aside, .app-main)
+    :is([role="tab"], [role="treeitem"], [role="listitem"], a):is([aria-current="page"], [aria-selected="true"]) {
+    background: var(--virga-selected) !important;
+    color: var(--virga-text) !important;
+  }
+  :is(.app-main, .app-aside) :is(
+    .section-header, .guild-header, .channel-header, .channel-editor,
+    .channel-member-list, .feed-card, .forum-card
+  ) {
+    background-color: var(--virga-panel) !important;
+    color: var(--virga-text) !important;
+    border-color: var(--virga-line) !important;
+  }
+  :is(.app-main, .app-aside) :is(.q-avatar__image, .avatar-img) {
+    border-radius: var(--virga-avatar-radius) !important;
+  }
+  :is(.app-main, .app-aside) :is(.q-badge-num, .unread-badge) {
+    background: var(--virga-badge) !important;
+    color: var(--virga-badge-text) !important;
+  }
+  :is(.q-popup__main, .q-context-menu:not(.is-pure), .q-dialog-main, [role="menu"], [role="dialog"]:not(:has(.q-dialog-main))) {
+    background-color: var(--virga-panel) !important;
+    color: var(--virga-text) !important;
+    border-color: var(--virga-line) !important;
+    border-radius: var(--virga-control-radius) !important;
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "skipLibCheck": true,
+    "types": ["node", "vite/client"]
+  },
+  "include": ["packages", "tools", "tests", "preview", "vitest.config.ts"]
+}

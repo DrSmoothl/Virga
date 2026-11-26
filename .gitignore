@@ -1,0 +1,12 @@
+node_modules/
+dist/
+release/
+coverage/
+.vite/
+.DS_Store
+.env
+.env.*
+*.local.*
+.impeccable/
+prototype/
+artwork/

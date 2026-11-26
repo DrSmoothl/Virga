@@ -1,0 +1,10 @@
+{
+  "name": "@virga/plugin",
+  "private": true,
+  "version": "0.1.17",
+  "type": "module",
+  "dependencies": {
+    "@virga/theme": "workspace:*",
+    "preact": "11.2.0"
+  }
+}

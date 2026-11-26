@@ -1,0 +1,200 @@
+:root[data-virga] {
+  --virga-chat-gutter: clamp(16px, 1.8vw, 24px);
+  --virga-composer-inset: clamp(8px, 1vw, 14px);
+  --virga-chat-hover: color-mix(
+    in srgb,
+    var(--virga-selected) 62%,
+    var(--virga-panel)
+  );
+}
+
+@layer virga-surfaces {
+  :root[data-virga] :is(.chat-header, .chat-input-area) {
+    background: var(--virga-panel) !important;
+    color: var(--virga-text);
+    border-color: var(--virga-line);
+  }
+  :root[data-virga] .chat-header {
+    padding-inline: var(--virga-chat-gutter) !important;
+    box-shadow: inset 0 -1px var(--virga-line);
+  }
+  :root[data-virga] .chat-header > :is(.background-mask, .texture-background) {
+    background: transparent !important;
+  }
+  :root[data-virga] .chat-header__contact-name {
+    color: var(--virga-text) !important;
+    font-weight: 650;
+    font-size: 16px;
+  }
+  :root[data-virga] .chat-header__contact-name .members-count {
+    color: var(--virga-muted) !important;
+    font-size: 12px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  :root[data-virga]
+    :is(.chat-header .panel-header__action, .chat-func-bar)
+    .bar-icon:not(.disable, .disabled)
+    .icon-item:not(:disabled, [aria-disabled="true"]) {
+    border-radius: var(--virga-control-radius);
+    color: var(--virga-muted) !important;
+  }
+  :root[data-virga]
+    :is(.chat-header .panel-header__action, .chat-func-bar)
+    .bar-icon:not(.disable, .disabled)
+    .icon-item:not(:disabled, [aria-disabled="true"]):is(:hover, :focus-visible) {
+    color: var(--virga-text) !important;
+    background-color: var(--virga-chat-hover) !important;
+  }
+  :root[data-virga]
+    :is(
+      .chat-header__contact-name,
+      .chat-header .panel-header__action .icon-item,
+      .chat-func-bar .icon-item
+    ):focus-visible {
+    outline: 1px solid var(--virga-accent);
+    outline-offset: -2px;
+  }
+
+  :root[data-virga]
+    .chat-msg-area
+    .message-container:has(> .message-content__wrapper) {
+    padding-inline: var(--virga-chat-gutter) !important;
+  }
+  :root[data-virga] .chat-msg-area .message-container .user-name {
+    color: var(--virga-muted) !important;
+  }
+  :root[data-virga] :is(.message-time, .message__time, .msg-time) {
+    color: var(--virga-muted) !important;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :root[data-virga] .chat-msg-area .chat-msg-area__tip--top-btn {
+    --virga-jump-surface: var(--virga-panel);
+    --virga-jump-color: var(--virga-jump-text);
+    --virga-jump-edge: var(--virga-line);
+    background: var(--virga-jump-surface) !important;
+    color: var(--virga-jump-color) !important;
+    border-color: transparent !important;
+    border-radius: 999px !important;
+    box-shadow: inset 0 0 0 1px var(--virga-jump-edge);
+  }
+  :root[data-virga] .chat-msg-area .chat-msg-area__tip--top-btn.theme-primary {
+    --virga-jump-surface: var(--virga-accent);
+    --virga-jump-color: var(--virga-jump-primary-text);
+    --virga-jump-edge: color-mix(
+      in srgb,
+      var(--virga-jump-color) 16%,
+      var(--virga-jump-surface)
+    );
+  }
+  :root[data-virga] .chat-msg-area .chat-msg-area__tip--top-btn:hover {
+    --virga-jump-edge: color-mix(
+      in srgb,
+      var(--virga-jump-color) 36%,
+      var(--virga-jump-surface)
+    );
+  }
+  :root[data-virga] .chat-msg-area .chat-msg-area__tip--top-btn:focus-visible {
+    outline: 2px solid var(--virga-accent);
+    outline-offset: 2px;
+  }
+  :root[data-virga]
+    .chat-msg-area
+    .chat-msg-area__tip--top-btn
+    :is(.content, .icon, .q-icon) {
+    color: inherit !important;
+  }
+  :root[data-virga] .chat-msg-area .chat-msg-area__tip--top-btn .content {
+    font-weight: 600;
+  }
+
+  :root[data-virga]
+    .chat-msg-area
+    :is(
+      .msg-content-container.container--self,
+      .message-self,
+      .message-container--self,
+      .message--self,
+      .message-content--self
+    ) {
+    --virga-mention-color: var(--virga-mention-outgoing);
+  }
+  :root[data-virga] .chat-msg-area .message-content .text-element--at {
+    color: var(--virga-mention-color, var(--virga-mention-incoming)) !important;
+    text-decoration-line: underline !important;
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+  }
+
+  :root[data-virga] .chat-input-area {
+    --virga-editor-gutter: var(--virga-chat-gutter);
+  }
+  :root[data-virga] .aio .chat-input-area {
+    --virga-editor-gutter: calc(
+      var(--virga-chat-gutter) - var(--virga-composer-inset)
+    );
+    align-self: stretch;
+    width: auto !important;
+    margin: 0 var(--virga-composer-inset) 6px !important;
+    border-radius: var(--virga-control-radius) !important;
+    box-shadow: inset 0 0 0 1px var(--virga-line);
+  }
+  :root[data-virga] .chat-input-area .chat-func-bar {
+    padding-inline: var(--virga-editor-gutter) !important;
+  }
+  :root[data-virga] .aio .chat-input-area > .msg-input {
+    background: transparent !important;
+    border-end-start-radius: inherit;
+    border-end-end-radius: inherit;
+  }
+  :root[data-virga]
+    .chat-input-area
+    :is(.qq-msg-editor, .qq-msg-editor__root)
+    > [contenteditable="true"] {
+    padding-inline: var(--virga-editor-gutter) !important;
+    caret-color: var(--virga-accent);
+  }
+}
+
+:root[data-virga] .chat-input-area > .resize-handler.ns::before {
+  /* Extend the native drag handle without changing the split. */
+  content: "";
+  position: absolute;
+  inset: -3px 0;
+  cursor: inherit;
+}
+:root[data-virga] .aio .chat-input-area:has(> .resize-handler.ns:is(:hover, :active))::after {
+  content: "";
+  position: absolute;
+  inline-size: 28px;
+  block-size: 2px;
+  inset-block-start: -3px;
+  inset-inline: 0;
+  margin-inline: auto;
+  background-color: var(--virga-muted);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 3;
+}
+:root[data-virga]
+  .chat-input-area
+  :is(.send-msg-btn, .send-btn, button[aria-label="发送"]):not(
+    :disabled,
+    [aria-disabled="true"]
+  ) {
+  background-color: var(--virga-accent);
+  color: var(--virga-on-accent);
+  border-radius: var(--virga-control-radius);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-virga]
+    :is(.chat-header .panel-header__action, .chat-func-bar)
+    .bar-icon
+    .icon-item {
+    transition-property: background-color, color;
+    transition-duration: var(--virga-duration);
+  }
+}

@@ -1,0 +1,313 @@
+@layer virga-surfaces {
+  :root[data-virga]
+    body:has(.global-container, .chat-container, .setting-layout),
+  :root[data-virga]
+    #app:has(.global-container, .chat-container, .setting-layout),
+  :root[data-virga] .q-miracle-background.miracle-background__sidebar,
+  :root[data-virga]
+    :is(
+      .global-container,
+      .container-content,
+      .container-content-view,
+      .chat-container,
+      .group-file-global-container,
+      .message-panel,
+      .message-panel__content,
+      .aio,
+      .group-chat,
+      .chat-msg-area,
+      [data-virga-pane]
+    ) {
+    background: var(--virga-canvas) !important;
+  }
+  :root[data-virga]
+    body:has(.global-container, .chat-container, .setting-layout)
+    #app::before,
+  :root[data-virga]
+    body:has(.global-container, .chat-container, .setting-layout)
+    #app::after,
+  :root[data-virga] .dark-mode-overlay {
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+  :root[data-virga]
+    .container-content
+    :is(
+      .container-content-view,
+      .two-col-layout,
+      .two-col-layout__aside,
+      .two-col-layout__main,
+      .contact-layout,
+      .contact-layout__left-area,
+      .contact-layout__right-area,
+      .recent-contact,
+      .chat-header,
+      .chat-input-area,
+      .group-box
+    ) {
+    border-radius: 0 !important;
+  }
+  :root[data-virga] [data-virga-pane] .panel-header {
+    background: var(--virga-panel) !important;
+  }
+  :root[data-virga]
+    :is(.global-container > .topbar, .container-topbar, .window-title-bar) {
+    color: var(--virga-rail-text) !important;
+    --text_primary: var(--virga-rail-text) !important;
+    --text_secondary: color-mix(
+      in srgb,
+      var(--virga-rail-text) 78%,
+      var(--virga-rail)
+    ) !important;
+    --icon_primary: var(--virga-rail-text) !important;
+  }
+  /* The ghost is a transparent drag layer over the account controls. */
+  :root[data-virga]
+    :is(
+      .global-container > .topbar,
+      .container-topbar,
+      .window-title-bar:not(.window-title-bar--ghost)
+    ) {
+    background: var(--virga-rail) !important;
+    box-shadow: inset 0 -1px
+      color-mix(in srgb, var(--virga-line) 52%, transparent);
+  }
+  :root[data-virga]
+    :is(.topbar, .container-topbar)
+    :is(.topbar-content, .topbar-profile, .window-title-bar) {
+    background: transparent !important;
+  }
+
+  :root[data-virga]
+    :is(.group-box, .right-sidebar:has(.group-member, .group-notice)) {
+    background: var(--virga-panel) !important;
+    color: var(--virga-text);
+    box-shadow: inset 1px 0 var(--virga-line);
+  }
+  :root[data-virga]
+    :is(.group-box, .right-sidebar)
+    :is(
+      .group-box__container,
+      .group-box__wrapper,
+      .group-panel,
+      .group-notice,
+      .group-member,
+      .group-user,
+      .group-user-list,
+      .viewport-list
+    ) {
+    background: transparent !important;
+  }
+  :root[data-virga] .group-notice {
+    border-block-end-color: var(--virga-line) !important;
+  }
+  :root[data-virga] :is(.group-member-title, .group-notice__title) {
+    color: var(--virga-text);
+    font-weight: 600;
+  }
+  :root[data-virga] .group-member .group-user:is(:hover, :focus-visible) {
+    background-color: var(--virga-selected) !important;
+    border-radius: min(5px, var(--virga-control-radius));
+  }
+
+  :root[data-virga] :is(.recent-contact, [data-virga-roster]) {
+    background: var(--virga-list) !important;
+    --virga-roster-hover: color-mix(
+      in srgb,
+      var(--virga-selected) 52%,
+      var(--virga-list)
+    );
+    --virga-roster-muted-badge: color-mix(
+      in srgb,
+      var(--virga-muted) 18%,
+      var(--virga-list)
+    );
+  }
+  :root[data-virga] .recent-contact .contact-top-bar {
+    background: var(--virga-list) !important;
+    box-shadow: inset 0 -1px var(--virga-line);
+  }
+  :root[data-virga] .recent-contact .q-search__input {
+    background: var(--virga-canvas) !important;
+    border-color: var(--virga-line) !important;
+    border-radius: var(--virga-control-radius);
+    color: var(--virga-muted);
+  }
+  :root[data-virga] .recent-contact .q-search__input:focus-within {
+    border-color: var(--virga-accent) !important;
+  }
+  :root[data-virga] .recent-contact .q-search__input input {
+    color: var(--virga-text) !important;
+  }
+  :root[data-virga] .recent-contact .q-search__input input::placeholder {
+    color: var(--virga-muted) !important;
+  }
+  :root[data-virga] .recent-contact .contact-adder-btn {
+    background: transparent !important;
+    color: var(--virga-muted) !important;
+    border-radius: var(--virga-control-radius);
+  }
+  :root[data-virga]
+    .recent-contact
+    .contact-adder-btn:is(:hover, :focus-visible) {
+    background-color: var(--virga-roster-hover) !important;
+    color: var(--virga-text) !important;
+  }
+  :root[data-virga]
+    .recent-contact
+    :is(
+      .viewport-list,
+      .viewport-list__inner,
+      .q-scroll-view,
+      .recent-contact-list,
+      .list-toggler,
+      .rc-pin-list
+    ) {
+    background-color: transparent !important;
+  }
+  :root[data-virga]
+    :is(.recent-contact, [data-virga-roster])
+    :is(.recent-contact-item, [role="listitem"]) {
+    --virga-row-bg: transparent;
+    box-sizing: border-box;
+    border: 2px solid transparent !important;
+    border-inline-width: 6px !important;
+    border-radius: var(--virga-control-radius) !important;
+    background: var(--virga-row-bg) padding-box !important;
+    box-shadow: none !important;
+    color: var(--virga-text);
+  }
+  :root[data-virga]
+    .recent-contact
+    :is(
+      .recent-contact-item--top,
+      .recent-contact-item--pinned,
+      .recent-contact-item--sticky
+    ) {
+    --virga-row-bg: color-mix(
+      in srgb,
+      var(--virga-selected) 10%,
+      var(--virga-list)
+    );
+  }
+  :root[data-virga]
+    :is(.recent-contact, [data-virga-roster])
+    :is(.recent-contact-item, [role="listitem"]):hover:not(
+      :where(
+        .recent-contact-item--selected,
+        .recent-contact-item--active,
+        [aria-selected="true"]
+      )
+    ) {
+    --virga-row-bg: var(--virga-roster-hover);
+  }
+  :root[data-virga]
+    :is(.recent-contact, [data-virga-roster])
+    :is(
+      .recent-contact-item--selected,
+      .recent-contact-item--active,
+      [aria-selected="true"]
+    ) {
+    --virga-row-bg: var(--virga-selected);
+    font-weight: 600;
+  }
+  :root[data-virga] .recent-contact .item__content {
+    background: transparent !important;
+  }
+  :root[data-virga] .recent-contact .contact-name__text {
+    color: var(--virga-text) !important;
+    font-weight: 550;
+  }
+  :root[data-virga]
+    .recent-contact
+    :is(
+      .recent-contact-item--selected,
+      .recent-contact-item--active,
+      .recent-contact-item:has(.q-badge-num:not(.q-badge__grey))
+    )
+    .contact-name__text {
+    font-weight: 650;
+  }
+  :root[data-virga]
+    .recent-contact
+    :is(.item__summary, .summary-main, .secondary-info, .item__time) {
+    color: var(--virga-muted) !important;
+  }
+  :root[data-virga]
+    .recent-contact
+    :is(.secondary-info, .item__time, .q-badge-num) {
+    font-variant-numeric: tabular-nums;
+  }
+  :root[data-virga] .recent-contact :is(.secondary-info, .item__time) {
+    font-size: 11px;
+  }
+  :root[data-virga] .recent-contact .q-badge-num {
+    background: var(--virga-badge) !important;
+    color: var(--virga-badge-text) !important;
+    box-shadow: none !important;
+    font-weight: 600;
+  }
+  :root[data-virga]
+    .recent-contact
+    :is(
+      .q-badge-num.q-badge__grey,
+      .q-badge__grey .q-badge-num,
+      .recent-contact-item:has(.no-disturb-icon) .q-badge-num
+    ) {
+    background: var(--virga-roster-muted-badge) !important;
+    color: var(--virga-muted) !important;
+  }
+  :root[data-virga] .recent-contact .q-badge-num > span {
+    background: transparent !important;
+    color: inherit !important;
+  }
+
+  :root[data-virga] .recent-contact .pin-collapse-bar {
+    --virga-pin-fill: var(--virga-panel);
+    --virga-pin-ink: var(--virga-muted);
+    gap: 8px;
+    padding-inline: 14px;
+    cursor: pointer;
+  }
+  :root[data-virga] .recent-contact .pin-collapse-bar[data-virga-hide-pin-toggle] {
+    display: none !important;
+  }
+  :root[data-virga]
+    .recent-contact
+    .pin-collapse-bar:is(:hover, :focus-visible) {
+    --virga-pin-fill: var(--virga-roster-hover);
+    --virga-pin-ink: var(--virga-text);
+  }
+  /* The sticky background covers the scrolled rows independently of the button. */
+  :root[data-virga]
+    .recent-contact
+    :is(.pin-collapse-bar, .pin-collapse-bar__stuck-bg) {
+    background: var(--virga-pin-fill) !important;
+    box-shadow: inset 0 1px var(--virga-line) !important;
+  }
+  :root[data-virga] .recent-contact .pin-collapse-bar__icon {
+    flex: 0 0 24px;
+  }
+  :root[data-virga]
+    .recent-contact
+    :is(.pin-collapse-bar__text, .pin-collapse-bar__icon, .pin-collapse-bar__arrow) {
+    color: var(--virga-pin-ink) !important;
+    --icon_primary: var(--virga-pin-ink) !important;
+    --icon_secondary: var(--virga-pin-ink) !important;
+  }
+  :root[data-virga] .recent-contact .pin-collapse-bar__text {
+    font-weight: 550;
+  }
+  :root[data-virga]
+    .recent-contact
+    :is(.pin-collapse-bar, .contact-adder-btn, .recent-contact-item):focus-visible {
+    outline: 1px solid var(--virga-accent);
+    outline-offset: -2px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-virga] .recent-contact .recent-contact-item {
+    transition-property: background-color;
+    transition-duration: var(--virga-duration);
+  }
+}

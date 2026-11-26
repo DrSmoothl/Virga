@@ -1,0 +1,22 @@
+{
+  "manifest_version": 4,
+  "type": "theme",
+  "renderer_lifecycle": 1,
+  "settings_window": true,
+  "name": "Virga 悬雨",
+  "slug": "virga",
+  "description": "雾白、石墨与雨青，为 QQ 留一片安静的底色。",
+  "version": "0.1.17",
+  "authors": [
+    {
+      "name": "DrSmoothl",
+      "link": "https://github.com/DrSmoothl"
+    }
+  ],
+  "platform": ["win32", "linux", "darwin"],
+  "icon": "./icon.svg",
+  "thumb": "./icon.svg",
+  "injects": {
+    "renderer": "./renderer.js"
+  }
+}

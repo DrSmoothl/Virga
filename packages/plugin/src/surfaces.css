@@ -1,0 +1,142 @@
+/* A row keeps its avatar column when several consecutive messages share one avatar. */
+:root[data-virga] [data-virga-merged-avatar] {
+  visibility: hidden !important;
+}
+:root[data-virga] [data-virga-merged-name] {
+  display: none !important;
+}
+:root[data-virga] [data-virga-avatar-anchor] {
+  translate: 0 var(--virga-avatar-offset, 0px);
+}
+
+@layer virga-surfaces {
+  :root[data-virga-bubbles="directional"] [data-virga-message-group] {
+    --virga-join: min(4px, calc(var(--virga-bubble-radius) * 0.35));
+  }
+  :root[data-virga-bubbles="directional"]
+    [data-virga-message-group]:not([data-virga-message-group="first"])
+    .container--others:has(.text-element) {
+    border-start-start-radius: var(--virga-join) !important;
+  }
+  :root[data-virga-bubbles="directional"]
+    [data-virga-message-group]
+    .container--others:has(.text-element) {
+    border-end-start-radius: var(--virga-join) !important;
+  }
+  :root[data-virga-bubbles="directional"]
+    [data-virga-message-group]:not([data-virga-message-group="first"])
+    .container--self:has(.text-element) {
+    border-start-end-radius: var(--virga-join) !important;
+  }
+  :root[data-virga-bubbles="directional"]
+    [data-virga-message-group]
+    .container--self:has(.text-element) {
+    border-end-end-radius: var(--virga-join) !important;
+  }
+}
+/* Important theme declarations in a named layer take precedence over QQ's
+   unlayered, scoped base-theme rules without depending on build selectors. */
+@layer virga-surfaces {
+  :root[data-virga] :is(.contact-layout, .contact-layout__left-area) {
+    --bg_list: var(--virga-list) !important;
+    --bg_nav_secondary: var(--virga-list) !important;
+    --fill_light_primary: var(--virga-selected) !important;
+    --fill_light_secondary: var(--virga-panel) !important;
+    --overlay_active_brand: var(--virga-selected) !important;
+    color: var(--virga-text);
+  }
+  :root[data-virga]
+    :is(
+      .contact-layout,
+      .contact-layout__right-area,
+      .contact-layout .two-col-layout__main,
+      .contact-layout .contact-profile,
+      .contact-layout .profile
+    ) {
+    background: var(--virga-canvas) !important;
+  }
+  :root[data-virga]
+    :is(
+      .contact-layout__left-area,
+      .contact-layout .two-col-layout__aside,
+      .contact-layout__left-area
+        :is(
+          .contact,
+          .contact-notify,
+          .contact-list,
+          .contact-layout__content-area,
+          .viewport-list__inner,
+          .q-collapse,
+          .q-collapse-item,
+          .q-collapse-item__wrap,
+          .q-collapse-item__header,
+          .tab-header,
+          .contact-top-bar
+        ),
+      .contact-layout .contact-buddy-item,
+      .contact-layout .contact-group-item,
+      .contact-layout [role="tree"]
+    ) {
+    background: var(--virga-list) !important;
+    color: var(--virga-text);
+  }
+  :root[data-virga] .contact-layout .profile__body {
+    background-color: var(--virga-panel) !important;
+    color: var(--virga-text);
+  }
+  :root[data-virga]
+    :is(.contact-layout, .contact-layout__left-area, .recent-contact)
+    :is(
+      .search-input,
+      .search-bar input,
+      .segmented-control,
+      [role="tablist"]
+    ) {
+    background-color: var(--virga-panel) !important;
+    color: var(--virga-text);
+    border-color: var(--virga-line);
+  }
+  :root[data-virga]
+    :is(.contact-layout, .contact-layout__left-area)
+    :is(
+      [role="tab"][aria-selected="true"],
+      [role="treeitem"][aria-selected="true"],
+      .list-item--selected,
+      .tab-item--active
+    ) {
+    background-color: var(--virga-selected) !important;
+    color: var(--virga-text) !important;
+  }
+  :root[data-virga]
+    .contact-layout__left-area
+    :is(
+      .q-collapse-item__header,
+      .contact-buddy-item,
+      .contact-group-item
+    ):hover {
+    background-color: color-mix(
+      in srgb,
+      var(--virga-selected) 55%,
+      var(--virga-list)
+    ) !important;
+  }
+  :root[data-virga]
+    :is(
+      .setting-layout,
+      .setting-layout .setting-tab,
+      .setting-layout .nav-bar
+    ) {
+    background-color: var(--virga-list) !important;
+  }
+  :root[data-virga]
+    .setting-layout
+    :is(.setting-main, .setting-main__content, .setting-title) {
+    background-color: var(--virga-canvas) !important;
+    color: var(--virga-text);
+  }
+  :root[data-virga]
+    .setting-layout
+    :is(.setting-card, .setting-group, .q-setting-card) {
+    background-color: var(--virga-panel) !important;
+  }
+}

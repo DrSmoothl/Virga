@@ -1,0 +1,215 @@
+@layer virga-surfaces {
+  :root[data-virga] [data-virga-command-panel] {
+    position: fixed !important;
+    inset: auto !important;
+    left: var(--virga-command-left) !important;
+    bottom: var(--virga-command-below) !important;
+    transform: none !important;
+    max-inline-size: var(--virga-command-width) !important;
+    max-block-size: var(--virga-command-space) !important;
+    margin: 0 !important;
+    overflow-y: auto;
+    background: var(--virga-panel) !important;
+    border-radius: var(--virga-control-radius) !important;
+    z-index: 20;
+  }
+  :root[data-virga] .chat-input-area[data-virga-composer] {
+    --virga-composer-line: 44px;
+    --virga-composer-min: clamp(
+      var(--virga-composer-line),
+      var(--virga-composer-floor, 0px),
+      max(var(--virga-composer-line), 50vh)
+    );
+    display: grid !important;
+    position: relative;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
+    flex: 0 1 auto !important;
+    box-sizing: border-box;
+    block-size: var(--virga-composer-size, auto) !important;
+    min-block-size: var(--virga-composer-min) !important;
+    max-block-size: max(var(--virga-composer-min), min(38vh, 280px)) !important;
+  }
+  :root[data-virga] .chat-input-area[data-virga-tools-open] {
+    z-index: 8;
+  }
+  :root[data-virga] [data-virga-composer] > .msg-input {
+    grid-area: 1 / 2;
+    min-inline-size: 0;
+    min-block-size: 0 !important;
+    block-size: auto !important;
+    overflow-y: auto !important;
+  }
+  :root[data-virga]
+    [data-virga-composer]
+    > .msg-input
+    :is(.qq-msg-editor, .qq-msg-editor__root, [data-virga-draft]) {
+    block-size: auto !important;
+  }
+  :root[data-virga] [data-virga-composer] > .msg-input [data-virga-draft] {
+    box-sizing: border-box;
+    min-block-size: var(--virga-composer-min) !important;
+    line-height: 1.45 !important;
+    padding-block: 12px !important;
+    padding-block: max(5px, calc((var(--virga-composer-line) - 1lh) / 2)) !important;
+    padding-inline: 6px var(--virga-editor-gutter) !important;
+    overflow-wrap: anywhere;
+  }
+  :root[data-virga]
+    [data-virga-composer]
+    > :is(.operation, .send-btn-wrap, .send-msg-btn, button[aria-label="发送"]) {
+    grid-area: 1 / 3;
+    position: relative !important;
+    inset: auto !important;
+    place-self: end;
+    inline-size: max-content !important;
+    margin: 0 6px 6px 0 !important;
+  }
+  :root[data-virga] [data-virga-tools-toggle] {
+    display: grid !important;
+    grid-area: 1 / 1;
+    place-self: end center;
+    place-items: center;
+    inline-size: 32px;
+    block-size: 32px;
+    margin: 0 !important;
+    margin-block-end: calc((var(--virga-composer-line) - 32px) / 2) !important;
+    padding: 0;
+    border: 0;
+    border-radius: var(--virga-control-radius);
+    background: transparent;
+    color: var(--virga-text);
+    cursor: pointer;
+  }
+  :root[data-virga] :is([data-virga-tools-toggle], [data-virga-voice-close])::before,
+  :root[data-virga] :is([data-virga-tools-toggle], [data-virga-voice-close])::after {
+    content: "";
+    grid-area: 1 / 1;
+    border-radius: 1px;
+    background-color: currentColor;
+  }
+  :root[data-virga] :is([data-virga-tools-toggle], [data-virga-voice-close])::before {
+    inline-size: 12px;
+    block-size: 2px;
+  }
+  :root[data-virga] :is([data-virga-tools-toggle], [data-virga-voice-close])::after {
+    inline-size: 2px;
+    block-size: 12px;
+  }
+  :root[data-virga] :is([data-virga-tools-toggle][aria-expanded="true"], [data-virga-voice-close])::before,
+  :root[data-virga] :is([data-virga-tools-toggle][aria-expanded="true"], [data-virga-voice-close])::after {
+    rotate: 45deg;
+  }
+  :root[data-virga]
+    [data-virga-tools-toggle]:is(:hover, [aria-expanded="true"]) {
+    background-color: var(--virga-chat-hover);
+  }
+  :root[data-virga] .audio-msg-input:has(> [data-virga-voice-close]) {
+    position: relative;
+  }
+  :root[data-virga] .audio-msg-input > [data-virga-voice-close] {
+    position: absolute;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
+    display: grid;
+    place-items: center;
+    inline-size: 32px;
+    block-size: 32px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--virga-control-radius);
+    background: color-mix(in srgb, var(--virga-panel) 90%, var(--virga-text));
+    color: var(--virga-text);
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+  }
+  :root[data-virga] .audio-msg-input > [data-virga-voice-close]:hover {
+    background: var(--virga-selected);
+  }
+  :root[data-virga] :is([data-virga-tools-toggle], [data-virga-voice-close]):focus-visible {
+    outline: 2px solid var(--virga-accent);
+    outline-offset: -2px;
+  }
+  :root[data-virga] [data-virga-composer] > .chat-func-bar[data-virga-toolbar] {
+    position: absolute !important;
+    inset: auto auto calc(100% + 4px) 0 !important;
+    inset-inline: 0 auto !important;
+    z-index: 2;
+    box-sizing: border-box;
+    inline-size: max-content !important;
+    max-inline-size: 100%;
+    block-size: auto !important;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px !important;
+    border-radius: var(--virga-control-radius);
+    background: var(--virga-panel) !important;
+    box-shadow:
+      inset 0 0 0 1px var(--virga-line),
+      0 4px 12px rgb(0 0 0 / 14%);
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  :root[data-virga]
+    [data-virga-toolbar]
+    :is(.chat-func-bar__left, .func-bar-native) {
+    min-inline-size: 0;
+    flex-wrap: wrap;
+  }
+  :root[data-virga]
+    [data-virga-composer][data-virga-tools-open]
+    > .chat-func-bar[data-virga-toolbar] {
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @layer virga-surfaces {
+    :root[data-virga] [data-virga-composer] {
+      --virga-tool-time: min(240ms, var(--virga-duration));
+      --virga-tool-easing: cubic-bezier(.16, 1, .3, 1);
+      --virga-tray-time: calc(var(--virga-tool-time) * .7);
+      --virga-tray-hide: var(--virga-tray-time);
+    }
+    :root[data-virga] [data-virga-composer][data-virga-tools-open] {
+      --virga-tray-time: var(--virga-tool-time);
+      --virga-tray-hide: 0ms;
+    }
+    :root[data-virga] .chat-input-area[data-virga-composer-sizing] {
+      transition: block-size min(220ms, var(--virga-duration)) cubic-bezier(.2, .7, .3, 1);
+    }
+    :root[data-virga] [data-virga-tools-toggle] {
+      transition:
+        background-color var(--virga-tool-time) var(--virga-tool-easing),
+        scale var(--virga-tool-time) var(--virga-tool-easing);
+    }
+    :root[data-virga] [data-virga-tools-toggle]:active {
+      scale: .96;
+    }
+    :root[data-virga] [data-virga-tools-toggle]::before,
+    :root[data-virga] [data-virga-tools-toggle]::after {
+      transition: rotate var(--virga-tool-time) var(--virga-tool-easing);
+    }
+    :root[data-virga] [data-virga-composer] > .chat-func-bar[data-virga-toolbar] {
+      margin-block-end: -7px !important;
+      opacity: 0;
+    }
+    /* Animate deliberate openings and keep fixed-position menu anchors intact. */
+    :root[data-virga]
+      [data-virga-composer][data-virga-tools-interacted]
+      > .chat-func-bar[data-virga-toolbar] {
+      transition:
+        opacity var(--virga-tray-time) var(--virga-tool-easing),
+        margin-block-end var(--virga-tray-time) var(--virga-tool-easing),
+        visibility 0ms linear var(--virga-tray-hide);
+    }
+    :root[data-virga]
+      [data-virga-composer][data-virga-tools-open]
+      > .chat-func-bar[data-virga-toolbar] {
+      margin-block-end: 0 !important;
+      opacity: 1;
+    }
+  }
+}

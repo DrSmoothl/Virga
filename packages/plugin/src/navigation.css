@@ -1,0 +1,65 @@
+@layer virga-surfaces {
+  :root[data-virga] :is(.sidebar-nav, .nav-bar-container) [data-virga-nav-hidden],
+  :root[data-virga] :is(.sidebar-nav, .nav-bar-container)
+    [data-virga-nav-badge-hidden] :is(.q-badge-sub, .q-badge-dot, .q-badge-num, .unread-badge, .unread-dot, .unread-count) {
+    display: none !important;
+  }
+  :root[data-virga] [data-virga-rail-host] {
+    position: relative !important;
+  }
+  :root[data-virga] [data-virga-rail-host] > [data-virga-floating-rail] {
+    --virga-rail-measured: var(--virga-rail-width, 52px);
+    position: absolute !important;
+    z-index: 12;
+    inset-block: 0;
+    inset-inline-start: calc(-1 * var(--virga-rail-measured) - 4px);
+    inline-size: var(--virga-rail-measured) !important;
+    overflow: visible !important;
+    background: var(--virga-rail) !important;
+    box-shadow: 5px 0 18px rgb(0 0 0 / 18%);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      inset-inline-start var(--virga-duration) cubic-bezier(.23, 1, .32, 1),
+      opacity var(--virga-duration) ease-out,
+      visibility 0s var(--virga-duration);
+  }
+  :root[data-virga] [data-virga-rail-open] > [data-virga-floating-rail] {
+    inset-inline-start: 0;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+  :root[data-virga] [data-virga-rail-handle] {
+    position: absolute;
+    z-index: 11;
+    inset: 0 auto 0 0;
+    inline-size: 7px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--virga-rail-text);
+    -webkit-app-region: no-drag;
+  }
+  :root[data-virga] [data-virga-rail-handle]:focus-visible {
+    inline-size: 20px;
+    background: var(--virga-rail);
+    outline: 1px solid var(--virga-accent);
+    outline-offset: -1px;
+  }
+  :root[data-virga] [data-virga-rail-handle]:focus-visible::before {
+    content: "";
+    display: block;
+    inline-size: 6px;
+    block-size: 6px;
+    margin-inline: 5px;
+    border: solid currentColor;
+    border-width: 1.5px 1.5px 0 0;
+    rotate: 45deg;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-virga] [data-virga-rail-host] > [data-virga-floating-rail] {
+      transition: none;
+    }
+  }
+}
