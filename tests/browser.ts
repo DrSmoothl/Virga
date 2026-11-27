@@ -3,7 +3,7 @@ import {
   verifyContactSurfaces,
   verifyAvatarGroups,
 } from "./surfaces-browser.ts";
-import { chatFixture, chatFixtureCSS, verifyChat } from "./chat-browser.ts";
+import { chatFixture, chatFixtureCSS, verifyChat, verifyConversationDrag } from "./chat-browser.ts";
 import { selectMode, updateAppearance, waitForAppearance } from "./browser-settings.ts";
 import { filterFixture, interfaceFixture, interfaceFixtureCSS, verifyInterface } from "./interface-browser.ts";
 import { liteLoaderSettingsFixture, verifyLiteLoaderSettings } from "./liteloader-browser.ts";
@@ -298,6 +298,7 @@ try {
   const workspace = await open("workspace#/main/message");
   await verifyWorkspace(workspace, false);
   await verifyPinned(workspace, classic);
+  await verifyConversationDrag(workspace);
   await verifyWorkspace(await open("detached#/chat"), true);
   await verifyShell(await open("shell"));
   const titlebar = await open("titlebar#/main/message");

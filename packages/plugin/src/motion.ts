@@ -51,6 +51,7 @@ function lastRow(host: Element) {
 }
 export function chatMotion(win: Window) {
   const media = win.matchMedia("(prefers-reduced-motion: reduce)");
+  const dragEvents = new AbortController();
   const active = new Set<Animation>();
   let config: MotionOptions | undefined;
   let session: AbortController | undefined;
@@ -62,6 +63,8 @@ export function chatMotion(win: Window) {
   let conversation: string | Element | undefined;
   let changeFrame = 0,
     quietUntil = 0;
+  let dragging = false,
+    dragEndFrame = 0;
   const plays = { conversation: 0, message: 0 };
   const now = () => win.performance.now();
   const allow = (kind: "messageMotion" | "conversationMotion") =>
@@ -84,11 +87,15 @@ export function chatMotion(win: Window) {
   }
   function changeConversation() {
     quietUntil = now() + 350;
+    if (dragging) {
+      stopEffects();
+      return;
+    }
     if (changeFrame) return;
     changeFrame = win.requestAnimationFrame(() => {
       changeFrame = 0;
       stopEffects();
-      if (!host || !list || !allow("conversationMotion")) return;
+      if (dragging || !host || !list || !allow("conversationMotion")) return;
       const viewportRect = timelineViewport(list, host).getBoundingClientRect();
       const sample: Element[] = [];
       for (
@@ -112,6 +119,35 @@ export function chatMotion(win: Window) {
       );
     });
   }
+
+  function setDragging(next: boolean) {
+    if (dragEndFrame) win.cancelAnimationFrame(dragEndFrame);
+    dragEndFrame = 0;
+    dragging = next;
+  }
+  function endDrag() {
+    if (!dragging || dragEndFrame) return;
+    // Let the host apply drop updates, including a pane rebind in the next frame.
+    dragEndFrame = win.requestAnimationFrame(() => {
+      dragEndFrame = win.requestAnimationFrame(() => {
+        dragEndFrame = 0;
+        dragging = false;
+      });
+    });
+  }
+  const dragListenerOptions = { capture: true, passive: true, signal: dragEvents.signal };
+  for (const kind of ["dragenter", "dragover"] as const)
+    win.addEventListener(kind, () => setDragging(true), dragListenerOptions);
+  for (const kind of ["drop", "dragend"] as const)
+    win.addEventListener(kind, endDrag, dragListenerOptions);
+  win.addEventListener("dragleave", (event) => {
+    if (!event.relatedTarget) endDrag();
+  }, dragListenerOptions);
+  // A fresh press can follow a native drag whose source was removed.
+  win.addEventListener("pointerdown", (event) => {
+    if (dragging && event.isTrusted) setDragging(false);
+  }, dragListenerOptions);
+
   function syncConversation() {
     selectedRow = roster?.querySelector(selected) ?? null;
     const id = selectedRow?.getAttribute("data-contact-id");
@@ -312,6 +348,8 @@ export function chatMotion(win: Window) {
       config = settings;
     },
     dispose() {
+      dragEvents.abort();
+      setDragging(false);
       detach();
       media.removeEventListener("change", onPreference);
     },

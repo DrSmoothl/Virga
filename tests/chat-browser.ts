@@ -273,3 +273,93 @@ export async function verifyChat(page: Page, settings: Page) {
   await updateAppearance(settings, () => each.check());
   await settings.getByRole("button", { name: "配色", exact: true }).click();
 }
+
+export async function verifyConversationDrag(page: Page) {
+  await page.bringToFront();
+  const roster = page.locator(".recent-contact-list");
+  const rows = roster.locator(".recent-contact-item");
+  await roster.evaluate(el => {
+    const title = document.querySelector(".chat-header__contact-name")!;
+    const photo = document.createElement("img");
+    photo.alt = "拖拽测试照片";
+    photo.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    photo.width = photo.height = 32;
+    photo.draggable = true;
+    document.querySelector(".ml-item .msg-content-container")!.append(photo);
+    const entries = Array.from(el.querySelectorAll<HTMLElement>(".recent-contact-item"));
+    function select(target: Element) {
+      for (const row of entries)
+        row.classList.toggle("recent-contact-item--selected", row === target);
+      title.replaceChildren(target.querySelector(".contact-name__text")!.textContent!);
+    }
+    for (const row of entries) {
+      row.addEventListener("dragover", event => {
+        event.preventDefault();
+        select(row);
+      });
+      row.addEventListener("click", () => select(row));
+    }
+    el.addEventListener("drop", event => {
+      event.preventDefault();
+      el.setAttribute("data-fixture-drop", "");
+      select(entries[4]!);
+    });
+  });
+
+  const observed = await page.evaluateHandle(() => {
+    const original = Element.prototype.animate;
+    const started: Animation[] = [];
+    Element.prototype.animate = function (keyframes, options) {
+      const animation = original.call(this, keyframes, options);
+      started.push(animation);
+      return animation;
+    };
+    return { started, restore: () => { Element.prototype.animate = original; } };
+  });
+  const entriesPlayed = () => observed.evaluate(async ({ started }) => {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return started.map(animation => animation.id).filter(id =>
+      id === "virga-chat-title" || id === "virga-chat-enter",
+    );
+  });
+  try {
+    const photo = page.getByRole("img", { name: "拖拽测试照片" });
+    await photo.hover();
+    await page.mouse.down();
+    try {
+      for (const index of [0, 2]) {
+        const row = rows.nth(index);
+        const box = await row.boundingBox();
+        assert.ok(box);
+        const x = box.x + box.width / 2, y = box.y + box.height / 2;
+        await page.mouse.move(x, y, { steps: 3 });
+        await page.mouse.move(x + 1, y);
+        await row.and(page.locator(".recent-contact-item--selected")).waitFor({ timeout: 5_000 });
+        assert.deepEqual(await entriesPlayed(), [], "拖拽经过会话时应保持静止");
+      }
+    } finally {
+      await page.mouse.up();
+    }
+    assert.equal(await roster.getAttribute("data-fixture-drop"), "");
+    await rows.nth(4).and(page.locator(".recent-contact-item--selected")).waitFor();
+    assert.deepEqual(await entriesPlayed(), [], "投放时的会话更新应保持静止");
+
+    await rows.nth(3).click();
+    const afterClick = await entriesPlayed();
+    assert.equal(afterClick.filter(id => id === "virga-chat-title").length, 1);
+    assert.ok(afterClick.includes("virga-chat-enter"), "普通会话切换应恢复入场动效");
+
+    const preview = rows.first();
+    await preview.dispatchEvent("dragover");
+    await preview.and(page.locator(".recent-contact-item--selected")).waitFor();
+    assert.deepEqual(await entriesPlayed(), afterClick, "从窗口外拖入时也应暂停入场动效");
+    await preview.dispatchEvent("dragleave", { relatedTarget: null });
+    assert.deepEqual(await entriesPlayed(), afterClick, "拖出窗口时不应补播预览动效");
+    await rows.nth(1).evaluate(el => (el as HTMLElement).click());
+    const afterLeaving = await entriesPlayed();
+    assert.equal(afterLeaving.filter(id => id === "virga-chat-title").length, 2);
+  } finally {
+    await observed.evaluate(({ restore }) => restore());
+    await observed.dispose();
+  }
+}
