@@ -11,7 +11,7 @@ export const titlebarFixture = `
     display:flex; flex-direction:column; justify-content:space-between;
   }
   .titlebar-fixture .container-content-view { display:flex; flex:1; position:relative; min-width:0; }
-  .titlebar-fixture .recent-contact { flex:0 0 270px; }
+  .titlebar-fixture .recent-contact { flex:0 0 270px; min-inline-size:0; }
   .titlebar-fixture .two-col-layout__main { min-width:0; flex:1; }
   .titlebar-fixture .contact-layout, .titlebar-fixture .guild-layout-wrapper { flex:1; }
   .titlebar-fixture .contact-layout__left-area { width:270px; }
@@ -88,12 +88,19 @@ export const titlebarFixture = `
 export async function verifyTitlebar(page: Page, settings: Page) {
   await settings.getByRole("button", { name: "界面", exact: true }).click();
   const select = settings.getByRole("combobox", { name: "标题栏" });
+  const settleTitlebar = () => page.waitForFunction(() =>
+    !document.getAnimations().some(a => a.id === "virga-titlebar-rail" ||
+      (a instanceof CSSTransition && (a.effect as KeyframeEffect).target?.matches(
+        ".titlebar-fixture > .container-topbar",
+      ))),
+  );
   const choose = async (name: string) => {
     const revision = await updateAppearance(settings, async () => {
       await select.click();
       await settings.getByRole("option", { name, exact: true }).click();
     });
     await waitForAppearance(page, revision);
+    await settleTitlebar();
   };
   const compactAttr = "data-virga-compact-titlebar";
   const shell = page.locator("#layout");
@@ -168,6 +175,50 @@ export async function verifyTitlebar(page: Page, settings: Page) {
     const clip = el.getBoundingClientRect();
     return title.top >= clip.top && title.bottom <= clip.bottom;
   }));
+  const sidebarWidth = (width: string) => finder.evaluate(async (control, width) => {
+    const bar = control.closest(".global-container")!.querySelector(":scope > .container-topbar")!;
+    (control.parentElement as HTMLElement).style.flexBasis = width;
+    for (let attempt = 0; attempt < 12; attempt++) {
+      await new Promise(requestAnimationFrame);
+      const transition = bar.getAnimations().find(a =>
+        a instanceof CSSTransition && /^(height|block-size)$/.test(a.transitionProperty),
+      );
+      if (!transition) continue;
+      transition.updatePlaybackRate(0.1);
+      transition.pause();
+      transition.currentTime = Number(transition.effect!.getTiming().duration) / 2;
+      const halfway = control.getBoundingClientRect().top;
+      transition.finish();
+      return halfway;
+    }
+    const shell = control.closest(".global-container")!;
+    throw new Error("侧栏宽度跨过紧凑阈值时没有顶栏过渡 " + JSON.stringify({
+      width, finderWidth: control.getBoundingClientRect().width,
+      finderTop: control.getBoundingClientRect().top,
+      compact: shell.hasAttribute("data-virga-compact-titlebar"),
+      ready: shell.hasAttribute("data-virga-titlebar-ready"),
+      activeMotion: document.documentElement.hasAttribute("data-virga-motion"),
+      hidden: document.hidden, reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      duration: getComputedStyle(bar).transitionDuration,
+      property: getComputedStyle(bar).transitionProperty,
+      animations: bar.getAnimations().map(a => a instanceof CSSTransition ? a.transitionProperty : a.id),
+    }));
+  }, width);
+  for (const width of ["132px", "270px"]) {
+    const halfway = await sidebarWidth(width);
+    assert.ok(halfway > 0 && halfway < compactHeight, String(halfway));
+    await settleTitlebar();
+  }
+  const roster = page.locator(".recent-contact");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await roster.evaluate(el => { (el as HTMLElement).style.flexBasis = "132px"; });
+  await signature.waitFor();
+  assert.equal((await finder.boundingBox())?.y, compactHeight);
+  assert.equal(await shell.locator(":scope > .container-topbar").evaluate(el => el.getAnimations().length), 0);
+  await roster.evaluate(el => { (el as HTMLElement).style.removeProperty("flex-basis"); });
+  await account.waitFor();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+
   await search.fill("雨");
   assert.equal(await search.inputValue(), "雨");
   const workspace = shell.locator(".container-content-view");
@@ -216,6 +267,9 @@ export async function verifyTitlebar(page: Page, settings: Page) {
       el.removeAttribute("data-test-search-x");
       const observer = new MutationObserver(() => {
         el.setAttribute("data-test-search-x", String(el.getBoundingClientRect().x));
+        el.setAttribute("data-test-rail-motion", String(document.getAnimations().filter(
+          animation => animation.id === "virga-titlebar-rail",
+        ).length));
         observer.disconnect();
       });
       observer.observe(document.documentElement, {
@@ -230,6 +284,8 @@ export async function verifyTitlebar(page: Page, settings: Page) {
       String(dockedSearchX),
       "搜索框应在配置生效时避开交通灯",
     );
+    assert.ok(Number(await search.getAttribute("data-test-rail-motion")) > 0);
+    await settleTitlebar();
   };
   await setAutoHide(true);
   await page.locator("[data-virga-rail-handle]").waitFor();
@@ -248,6 +304,7 @@ export async function verifyTitlebar(page: Page, settings: Page) {
   await page.setViewportSize({ width: 820, height: 920 });
   await account.waitFor();
   assert.equal(await shell.getAttribute(compactAttr), "");
+  await settleTitlebar();
 
   const conversationMarkup = await workspace.innerHTML();
   await workspace.evaluate(el => {
@@ -258,6 +315,7 @@ export async function verifyTitlebar(page: Page, settings: Page) {
   });
   await signature.waitFor();
   assert.equal(await shell.getAttribute(compactAttr), null);
+  await settleTitlebar();
   const contactsHeader = shell.locator(".container-topbar");
   const contactsSearch = page.getByRole("searchbox", { name: "搜索联系人" });
   const contactsHeight = (await contactsHeader.boundingBox())!.height;
@@ -291,6 +349,7 @@ export async function verifyTitlebar(page: Page, settings: Page) {
     el.innerHTML = markup;
   }, conversationMarkup);
   await account.waitFor();
+  await settleTitlebar();
 
   await setAutoHide(false);
   await checkDockedRail(compactHeight);

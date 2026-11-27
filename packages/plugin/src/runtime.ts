@@ -98,18 +98,20 @@ export function startTheme(api: ConfigAPI, win: Window = window) {
     const root = doc.documentElement;
     root.setAttribute("data-virga", "");
     root.dataset.virgaBubbles = settings.bubbleShape;
+    root.toggleAttribute("data-virga-motion", settings.motion && settings.duration > 0);
     for (const [key, attribute] of Object.entries(featureAttributes))
       root.toggleAttribute(attribute, settings[key as keyof typeof featureAttributes]);
     motion.configure(settings);
     avatars.configure(settings.groupAvatars);
-    navigation.configure(settings.navigation);
-    notifications.configure(settings.styleNotifications);
-    channels.configure(settings);
-    pins.configure(settings.hidePinnedToggle);
     titlebar.configure(
       settings.titlebar,
       current?.settings.navigation.autoHide !== settings.navigation.autoHide,
+      settings.motion ? settings.duration : 0,
+      () => navigation.configure(settings.navigation),
     );
+    notifications.configure(settings.styleNotifications);
+    channels.configure(settings);
+    pins.configure(settings.hidePinnedToggle);
     unbindConversation ??= bindConversation(win, (pane, roster) => {
       motion.attach(pane, roster);
       avatars.attach(pane);
@@ -217,6 +219,7 @@ export function startTheme(api: ConfigAPI, win: Window = window) {
     titlebar.dispose();
     coverageCheck.dispose();
     doc.documentElement.removeAttribute("data-virga-bubbles");
+    doc.documentElement.removeAttribute("data-virga-motion");
     doc.documentElement.removeAttribute("data-virga-revision");
     for (const attribute of Object.values(featureAttributes))
       doc.documentElement.removeAttribute(attribute);

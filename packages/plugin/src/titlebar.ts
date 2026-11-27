@@ -2,6 +2,7 @@ const compactAttribute = "data-virga-compact-titlebar";
 const profileAttribute = "data-virga-titlebar-profile-open";
 const insetsAttribute = "data-virga-titlebar-insets";
 const emptyAttribute = "data-virga-titlebar-empty";
+const readyAttribute = "data-virga-titlebar-ready";
 const avatarGap = 8;
 
 function findTitlebar(doc: Document) {
@@ -42,6 +43,22 @@ function bindTitlebar(win: Window, parts: NonNullable<ReturnType<typeof findTitl
   let active = false;
   let search: HTMLElement | undefined;
   let watchedChat: HTMLElement | undefined;
+  const reduced = win.matchMedia("(prefers-reduced-motion: reduce)");
+  const railMotion = new Set<Animation>();
+  let readyFrame = win.requestAnimationFrame(() => {
+    readyFrame = win.requestAnimationFrame(() => {
+      readyFrame = 0;
+      shell.setAttribute(readyAttribute, "");
+    });
+  });
+
+  function stopRailMotion() {
+    for (const animation of railMotion) animation.cancel();
+    railMotion.clear();
+  }
+  reduced.addEventListener("change", () => {
+    if (reduced.matches) stopRailMotion();
+  }, { signal });
 
   function setOpen(open: boolean) {
     profile.toggleAttribute(profileAttribute, open);
@@ -50,6 +67,7 @@ function bindTitlebar(win: Window, parts: NonNullable<ReturnType<typeof findTitl
 
   function setActive(next: boolean) {
     if (active === next) return;
+    stopRailMotion();
     active = next;
     shell.toggleAttribute(compactAttribute, active);
     if (active) {
@@ -149,11 +167,57 @@ function bindTitlebar(win: Window, parts: NonNullable<ReturnType<typeof findTitl
     view.toggleAttribute(emptyAttribute, fits && !chat);
   }
 
-  const size = new ResizeObserver(measure);
+  let viewWidth: number | undefined;
+  const size = new ResizeObserver((entries) => {
+    const viewport = entries.find(({ target }) => target === view);
+    const width = viewport?.contentRect.width;
+    const viewResized = width !== undefined && width !== viewWidth;
+    if (width !== undefined) viewWidth = width;
+    if (viewResized || entries.some(({ target }) => target !== view)) measure();
+  });
   for (const node of [chrome, spacer, view, tools, avatar]) size.observe(node);
+
+  function updateRail(apply: () => void, duration: number) {
+    const previousMode = active;
+    const positions = new Map<Element, number>();
+    if (duration > 0 && !reduced.matches && !doc.hidden && !readyFrame) {
+      const finder = search ?? view.querySelector(".recent-contact > .contact-top-bar");
+      const chat = watchedChat ?? view.querySelector(".chat-header");
+      for (const node of finder?.children ?? []) {
+        if (node.getClientRects().length)
+          positions.set(node, node.getBoundingClientRect().left);
+      }
+      for (const node of chat?.querySelectorAll(
+        ":scope > :is(.panel-header__title, .panel-header__action, .chat-header__contact-name)",
+      ) ?? []) {
+        if (node.getClientRects().length)
+          positions.set(node, node.getBoundingClientRect().left);
+      }
+    }
+    apply();
+    stopRailMotion();
+    measure();
+    if (previousMode !== active) return;
+    for (const [node, left] of positions) {
+      if (!node.getClientRects().length) continue;
+      const distance = left - node.getBoundingClientRect().left;
+      if (Math.abs(distance) < 0.5) continue;
+      const animation = node.animate(
+        [{ transform: "translateX(" + distance + "px)" }, { transform: "translateX(0px)" }],
+        { duration, easing: "cubic-bezier(.23, 1, .32, 1)", fill: "backwards", composite: "add" },
+      );
+      animation.id = "virga-titlebar-rail";
+      railMotion.add(animation);
+      const forget = () => railMotion.delete(animation);
+      animation.addEventListener("finish", forget, { once: true });
+      animation.addEventListener("cancel", forget, { once: true });
+    }
+  }
+
   return {
     parts,
-    measure,
+    updateRail,
+    stopRailMotion,
     attach(roster: Element | undefined) {
       const next = roster?.matches(".recent-contact") && view.contains(roster)
         ? roster.querySelector<HTMLElement>(":scope > .contact-top-bar") ?? undefined
@@ -168,6 +232,9 @@ function bindTitlebar(win: Window, parts: NonNullable<ReturnType<typeof findTitl
     dispose() {
       size.disconnect();
       events.abort();
+      if (readyFrame) win.cancelAnimationFrame(readyFrame);
+      stopRailMotion();
+      shell.removeAttribute(readyAttribute);
       setActive(false);
       view.removeAttribute(emptyAttribute);
       shell.removeAttribute(insetsAttribute);
@@ -189,11 +256,19 @@ export function compactTitlebar(win: Window) {
     binding?.attach(mode === "compact" ? roster : undefined);
   }
   return {
-    configure(next: "full" | "compact", railChanged: boolean) {
+    configure(
+      next: "full" | "compact",
+      railChanged: boolean,
+      duration: number,
+      applyRail: () => void,
+    ) {
+      if (!duration) binding?.stopRailMotion();
       if (mode === next && binding) {
-        if (railChanged) binding?.measure();
+        if (railChanged) binding.updateRail(applyRail, duration);
+        else applyRail();
         return;
       }
+      applyRail();
       mode = next;
       reconcile();
     },
