@@ -30,8 +30,18 @@ const bundle = await readFile(
   new URL("../dist/plugin/renderer.js", import.meta.url),
   "utf8",
 );
-const imageAndLink = '<div class="message-content"><span class="pic-element"><img alt="" width="24" height="24"></span><span class="text-element"><a href="#image">图片附带链接</a></span></div>';
-const nativeMixedBubble = 'style="background:#176e91 linear-gradient(#147caa,#176e91);padding:0;border-radius:17px"';
+const photo = '<img alt="" width="24" height="24">';
+const richMessages = {
+  reply: '<div class="message-content"><div class="reply-element">雨势变小了。</div><span class="text-element"><span class="text-element--at">@南枝</span> 看到了。</span></div>',
+  mixed: '<div class="message-content"><span class="pic-element">' + photo + '</span><span class="text-element"><a href="#image">图片附带链接</a></span></div>',
+  forward: '<div class="forward-msg" role="button" tabindex="0">合并转发的聊天记录</div>',
+  file: '<div class="message-content"><div class="file-element">路线.pdf <button type="button">下载</button></div></div>',
+  custom: '<article class="rich-message">没有文字元素标记的消息</article>',
+};
+const nativeRichBubble = 'style="background:#176e91 linear-gradient(#147caa,#176e91);padding:0;border-radius:17px"';
+const richBubbles = Object.entries(richMessages).map(([kind, content]) => `
+    <div class="msg-content-container container--self" id="${kind}-outgoing" ${nativeRichBubble}>${content}</div>
+    <div class="message-container message-container--others"><div class="message-content__wrapper" id="${kind}-incoming" ${nativeRichBubble}>${content}</div></div>`).join("");
 const pages = {
   shell: shellFixture,
   titlebar: titlebarFixture,
@@ -43,12 +53,14 @@ const pages = {
   liteloader: liteLoaderSettingsFixture,
   interface: interfaceFixture,
   notify: filterFixture,
-  components: `<div id="layout"><aside class="sidebar-nav"></aside><section class="recent-contact"></section><main class="chat-msg-area">
+  components: `<div id="layout"><aside class="sidebar-nav"></aside><section class="recent-contact"></section><main class="chat-msg-area" style="overflow:auto">
     <div class="message"><div class="message-content__wrapper" id="wrapper"><div class="msg-content-container container--self" id="bubble"><div class="message-content"><span class="text-element">雨还没落到地上。</span></div></div></div></div>
     <div class="msg-content-container container--others" id="incoming"><div class="message-content"><span class="text-element">看到了。</span></div></div>
-    <div class="msg-content-container container--self" id="mixed-outgoing" ${nativeMixedBubble}>${imageAndLink}</div>
-    <div class="message-peer"><div class="message-content__wrapper" id="mixed-incoming" ${nativeMixedBubble}>${imageAndLink}</div></div>
-    <div class="msg-content-container container--others" id="photo"><img alt="" width="24" height="24"></div></main></div>`,
+    ${richBubbles}
+    <div class="message-container message-container--self"><div class="message-content__wrapper" id="forward-legacy-outgoing" ${nativeRichBubble}>${richMessages.forward}</div></div>
+    <div class="message-container--self"><div class="msg-content-container container--others" id="explicit-incoming" ${nativeRichBubble}>${richMessages.custom}</div></div>
+    <div class="msg-content-container container--others" id="photo">${photo}</div>
+    <div class="msg-content-container container--self" id="wrapped-photo"><div class="message-content"><span class="pic-element">${photo}</span></div></div></main></div>`,
   empty: `<div id="layout" class="messenger"><aside class="sidebar-nav"></aside>
     <section class="rail-column"><div role="list" aria-label="会话列表"><div role="listitem" aria-selected="true">悬雨主题小组</div></div></section>
     <main id="surface"><div id="native-idle"><svg aria-hidden="true" viewBox="0 0 60 60"><circle cx="30" cy="30" r="19" fill="#33434a"/></svg></div></main></div>`,
@@ -158,21 +170,31 @@ try {
       const { backgroundColor, backgroundImage, color } = getComputedStyle(el);
       return { backgroundColor, backgroundImage, color };
     });
-  const verifyMixedBubbles = async () => {
-    for (const [plain, mixed] of [
-      ["#bubble", "#mixed-outgoing"],
-      ["#incoming", "#mixed-incoming"],
+  const verifyBubbleColors = async () => {
+    for (const [direction, plain, extra] of [
+      ["outgoing", "#bubble", "#forward-legacy-outgoing"],
+      ["incoming", "#incoming", "#explicit-incoming"],
     ] as const) {
-      assert.deepEqual(await bubblePaint(mixed), await bubblePaint(plain), mixed);
-      const layout = await classic.locator(mixed).evaluate((el) => {
-        const { paddingTop, borderTopRightRadius } = getComputedStyle(el);
-        return [paddingTop, borderTopRightRadius];
-      });
-      assert.deepEqual(layout, ["0px", "17px"], mixed + " image layout");
+      const expected = await bubblePaint(plain);
+      const rich = Object.keys(richMessages).map((kind) => "#" + kind + "-" + direction);
+      for (const selector of [...rich, extra]) {
+        assert.deepEqual(await bubblePaint(selector), expected, selector);
+        const layout = await classic.locator(selector).evaluate((el) => {
+          const { paddingTop, borderTopRightRadius } = getComputedStyle(el);
+          return [paddingTop, borderTopRightRadius];
+        });
+        assert.deepEqual(layout, ["0px", "17px"], selector + " native geometry");
+      }
     }
-    assert.equal(await color(classic, "#photo"), "rgba(0, 0, 0, 0)");
+    for (const selector of ["#photo", "#wrapped-photo", "#wrapper"]) {
+      assert.equal(await color(classic, selector), "rgba(0, 0, 0, 0)", selector);
+    }
+    for (const direction of ["outgoing", "incoming"]) {
+      const mention = classic.locator("#reply-" + direction + " .text-element--at");
+      assert.equal(await mention.evaluate((el) => getComputedStyle(el).textDecorationLine), "underline");
+    }
   };
-  await verifyMixedBubbles();
+  await verifyBubbleColors();
   assert.equal(await color(tokens, "#guest"), "rgb(237, 240, 237)");
   assert.equal(
     await classic
@@ -287,7 +309,7 @@ try {
   await waitForAppearance(tokens, darkRevision);
   await tokens.emulateMedia({ colorScheme: "light" });
   assert.equal(await color(tokens, "#bubble"), "rgb(159, 181, 195)");
-  await verifyMixedBubbles();
+  await verifyBubbleColors();
   await classic.reload();
   await mount(classic);
   await classic.getByRole("button", { name: "配色", exact: true }).click();

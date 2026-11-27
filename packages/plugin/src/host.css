@@ -131,42 +131,43 @@
   ) !important;
   padding-block: var(--virga-bubble-padding) !important;
 }
-/* Apply the sender palette to text and photo captions. */
+/* Paint the message shell, leaving bare media and outer layout wrappers transparent. */
 @layer virga-surfaces {
   :root[data-virga]
-    :is(
-      .msg-content-container.container--others,
-      :is(.message-peer, .message-other, .message-container--received)
-        :is(
-          .msg-content-container,
-          .message-content__wrapper:not(:has(.msg-content-container))
-        )
-    ):has(.text-element):not(
-      :has(video, canvas, .file-element, .ark-element, .reply-element)
-    ) {
+    :where(
+      .msg-content-container,
+      .message-content__wrapper:not(:has(.msg-content-container))
+    ):not(:where(:has(
+      > :is(img, video, canvas, .pic-element):only-child,
+      > .message-content:only-child > :is(img, video, canvas, .pic-element):only-child
+    ))) {
+    --virga-bubble-background: var(--virga-incoming);
+    --virga-bubble-foreground: var(--virga-incoming-text);
+    --virga-mention-color: var(--virga-mention-incoming);
     --virga-bubble-start-corner: var(--virga-person-corner);
-    background: var(--virga-incoming) !important;
-    color: var(--virga-incoming-text) !important;
+    --virga-bubble-end-corner: var(--virga-bubble-radius);
+    background: var(--virga-bubble-background) !important;
+    color: var(--virga-bubble-foreground) !important;
   }
   :root[data-virga]
-    :is(
-      .msg-content-container.container--self,
+    :where(
+      .msg-content-container,
+      .message-content__wrapper:not(:has(.msg-content-container))
+    ):not(.container--others):is(
+      .container--self,
+      .message-content--self,
       :is(
-          .message-self,
-          .message-container--self,
-          .message--self,
-          .message-content--self
-        )
-        :is(
-          .msg-content-container,
-          .message-content__wrapper:not(:has(.msg-content-container))
-        )
-    ):has(.text-element):not(
-      :has(video, canvas, .file-element, .ark-element, .reply-element)
+        .message-self,
+        .message-container--self,
+        .message--self,
+        .message-content--self
+      ) *
     ) {
+    --virga-bubble-background: var(--virga-outgoing);
+    --virga-bubble-foreground: var(--virga-outgoing-text);
+    --virga-mention-color: var(--virga-mention-outgoing);
+    --virga-bubble-start-corner: var(--virga-bubble-radius);
     --virga-bubble-end-corner: var(--virga-person-corner);
-    background: var(--virga-outgoing) !important;
-    color: var(--virga-outgoing-text) !important;
   }
 }
 :root[data-virga] :is(.q-avatar__image, .avatar-img, .avatar img) {
