@@ -6,6 +6,11 @@ import {
   rowHost,
   timelineViewport,
 } from "./chat-dom.ts";
+import {
+  messageTimes,
+  sentTimeMark,
+  sentTimePlacementMark,
+} from "./message-times.ts";
 
 const avatarSelector =
   ".message-avatar, .message__avatar, .avatar-span, .avatar, .q-avatar, .avatar-img, [data-message-avatar]";
@@ -168,6 +173,7 @@ export function avatarGroups(win: Window) {
   const marked = new Map<string, Map<Element, string>>();
   const offsets = new Map<HTMLElement, number>();
   const sources = new WeakMap<Element, string>();
+  const readTimes = messageTimes();
   let anchors: Array<{ avatar: HTMLElement; first: Element; last: Element }> =
     [];
   const observer = new MutationObserver((records) => {
@@ -178,7 +184,7 @@ export function avatarGroups(win: Window) {
         if (r.type === "characterData") return !!el.closest(separator);
         if (r.attributeName === "style") {
           if (el === host || el.matches(rows)) schedulePosition();
-          if (el.matches(separator)) return true;
+          if (el.matches(separator) || el.hasAttribute(sentTimeMark)) return true;
           if (!(el instanceof HTMLElement) || !el.closest(avatarSelector))
             return false;
           const source = el.style.backgroundImage;
@@ -193,7 +199,7 @@ export function avatarGroups(win: Window) {
   const geometry = new MutationObserver(schedule);
   const resize = new ResizeObserver(schedulePosition);
   function schedule() {
-    if (!frame && enabled) frame = win.requestAnimationFrame(render);
+    if (!frame) frame = win.requestAnimationFrame(render);
   }
   function schedulePosition() {
     if (!positionFrame && enabled)
@@ -252,16 +258,26 @@ export function avatarGroups(win: Window) {
     resize.disconnect();
     viewport?.removeEventListener("scroll", schedulePosition, true);
     clearGrouping();
+    for (const attribute of [sentTimeMark, sentTimePlacementMark]) {
+      for (const el of marked.get(attribute)?.keys() ?? [])
+        el.removeAttribute(attribute);
+      marked.delete(attribute);
+    }
     timeline = host = viewport = undefined;
   }
   function render() {
     frame = 0;
-    if (!enabled || !timeline || !host) return;
+    if (!timeline || !host) return;
     if (!host.isConnected || rowHost(timeline) !== host) {
       attach(scope);
       return;
     }
     const children = Array.from(host.children);
+    const { times, placements } = readTimes(host, children);
+    replaceMarks(sentTimeMark, times);
+    replaceMarks(sentTimePlacementMark, placements);
+    if (!enabled) return;
+
     const groups: NonNullable<ReturnType<typeof messageAuthor>>[][] = [];
     const foldedClocks = new Map<Element, string>();
     let group: (typeof groups)[number] | undefined;
@@ -350,7 +366,7 @@ export function avatarGroups(win: Window) {
   }
   function attach(pane: Element | undefined) {
     scope = pane;
-    const list = enabled && pane && findTimeline(pane);
+    const list = pane && findTimeline(pane);
     if (!list) {
       clear();
       return;
@@ -375,6 +391,8 @@ export function avatarGroups(win: Window) {
       attributeFilter: [
         ...new Set([
           ...avatarAttributes,
+          "id",
+          "data-message-id",
           "src",
           "style",
           "class",
@@ -408,7 +426,8 @@ export function avatarGroups(win: Window) {
     configure(value: boolean) {
       if (value !== enabled) {
         enabled = value;
-        attach(scope);
+        if (enabled) schedule();
+        else clearGrouping();
       }
     },
     dispose() {

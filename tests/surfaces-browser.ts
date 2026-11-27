@@ -167,6 +167,7 @@ export async function verifyAvatarGroups(page: Page, settings: Page) {
   const [atLast, limit, lastBubble] = await geometry();
   assert.ok(Math.abs(atLast - Math.min(limit - 4, lastBubble)) < 1);
   await verifyGroupSpacing(page, track, avatars);
+  await verifySentTimePlacement(page, track);
 }
 
 async function verifyGroupSpacing(page: Page, track: Locator, setting: Locator) {
@@ -201,7 +202,38 @@ async function verifyGroupSpacing(page: Page, track: Locator, setting: Locator) 
       message("group-after-unread", "", '<span class="text-element">附带说明</span>' + mailCard);
     el.querySelector("#group-after-pause .msg-content-container")!
       .classList.add("ark-msg-content-container");
-
+    const vnode = (
+      selector: string,
+      hour: number,
+      minute: number,
+      elements?: readonly { arkElement: object | null }[],
+    ) => {
+      const elOfMessage = el.querySelector(selector)!;
+      return {
+        component: {
+          vnode: { el: elOfMessage },
+          props: {
+            msgRecord: {
+              msgTime: String(new Date(2026, 10, 27, hour, minute).getTime() / 1000),
+              elements,
+            },
+          },
+        },
+      };
+    };
+    Object.assign(el, {
+      _vnode: {
+        children: [
+          vnode("#group-first .message", 16, 32),
+          vnode("#group-photo .message", 16, 37),
+          vnode("#group-last .message", 16, 45),
+          vnode("#group-next .text-element", 16, 1),
+          vnode("#group-after-pause .message", 17, 12),
+          vnode("#group-after-date .message", 17, 30, [{ arkElement: {} }]),
+          vnode("#group-after-unread .message", 17, 32, [{ arkElement: null }, { arkElement: {} }]),
+        ],
+      },
+    });
   });
   await page.waitForFunction(() => !!document.querySelector(
     "#group-first [data-virga-message-group=first]",
@@ -214,6 +246,19 @@ async function verifyGroupSpacing(page: Page, track: Locator, setting: Locator) 
   });
   assert.deepEqual(await gaps(), [4, 4, 4], "连续消息气泡之间的距离");
   const bubble = (id: string) => track.locator("#" + id + " .msg-content-container");
+  for (const [id, time] of [
+    ["group-first", "16:32"],
+    ["group-photo", "16:37"],
+    ["group-last", "16:45"],
+    ["group-after-unread", "17:32"],
+  ] as const) {
+    assert.equal(await bubble(id).getAttribute("data-virga-sent-at"), time);
+    assert.equal(await bubble(id).evaluate(el => getComputedStyle(el, "::after").content), '"' + time + '"');
+  }
+  assert.equal(await bubble("group-next").getAttribute("data-virga-sent-at"), null);
+  for (const id of ["group-after-pause", "group-after-date"]) {
+    assert.equal(await bubble(id).getAttribute("data-virga-sent-at"), null, id);
+  }
   assert.equal(await bubble("group-photo").evaluate(el => getComputedStyle(el).backgroundColor), "rgba(0, 0, 0, 0)");
   assert.equal(await track.locator("#group-clock").isVisible(), false);
   assert.equal(await track.locator("#group-last .message__timestamp").isVisible(), false);
@@ -239,7 +284,91 @@ async function verifyGroupSpacing(page: Page, track: Locator, setting: Locator) 
   await updateAppearance(page, () => setting.uncheck());
   await clock.waitFor({ state: "visible" });
   assert.ok((await gaps()).every((gap) => gap > 4));
+  assert.equal(await bubble("group-photo").getAttribute("data-virga-sent-at"), "16:37");
+  await track.evaluate((el) => {
+    const owner = el as Element & {
+      _vnode?: { children: { component: { props: { msgRecord: { msgTime: string } } } }[] };
+    };
+    owner._vnode!.children[0]!.component.props.msgRecord.msgTime =
+      String(new Date(2026, 10, 27, 16, 33).getTime() / 1000);
+    el.querySelector("#group-first")!.setAttribute("data-message-id", "recycled");
+  });
+  await page.waitForFunction(() =>
+    document.querySelector("#group-first .msg-content-container")?.getAttribute("data-virga-sent-at") === "16:33");
   await updateAppearance(page, () => setting.check());
   await clock.waitFor({ state: "hidden" });
   assert.deepEqual(await gaps(), [4, 4, 4]);
+}
+
+async function verifySentTimePlacement(page: Page, track: Locator) {
+  await page.addStyleTag({ content: `
+    .clock-fixture { --virga-bubble-radius: 28px; }
+    .clock-fixture [data-clock-case] {
+      display: flex;
+      inline-size: 144px;
+      padding: 0;
+      border-radius: var(--virga-bubble-radius);
+      overflow: hidden;
+    }
+    .clock-fixture [data-clock-case$="-reverse"] { flex-direction: row-reverse; }
+    .clock-fixture [data-clock-case$="-photo"] { flex-direction: column; inline-size: 72px; }
+    .clock-fixture [data-clock-case] > :first-child { flex: none; inline-size: 48px; }
+  ` });
+  const cases = ["incoming", "outgoing", "incoming-reverse", "outgoing-photo", "incoming-photo"];
+  await track.evaluate((el, cases) => {
+    el.classList.add("clock-fixture");
+    el.innerHTML = cases.map((id) => {
+      const own = id.startsWith("outgoing");
+      const photo = id.endsWith("-photo");
+      const shell = photo ? "message-content__wrapper" : "msg-content-container";
+      const content = photo
+        ? '<img width="48" height="36" alt="">'
+        : '<span class="message-content"><span class="text-element">收到</span></span>';
+      return `<article class="ml-item message ${own ? "message-container--self" : ""}">
+        <div class="${shell}" data-clock-case="${id}">${content}</div></article>`;
+    }).join("");
+    Object.assign(el, {
+      _vnode: {
+        children: Array.from(el.children, (row) => ({
+          component: {
+            vnode: { el: row },
+            props: {
+              msgRecord: {
+                msgTime: String(new Date(2026, 10, 27, 21, 55).getTime() / 1000),
+              },
+            },
+          },
+        })),
+      },
+    });
+  }, cases);
+  await page.waitForFunction((count) =>
+    document.querySelectorAll(".clock-fixture [data-virga-sent-at]").length === count,
+  cases.length);
+  for (const id of cases) {
+    const own = id.startsWith("outgoing");
+    const box = await track.locator(`[data-clock-case="${id}"]`).evaluate((el, own) => {
+      const shell = el.getBoundingClientRect();
+      const content = el.firstElementChild!.getBoundingClientRect();
+      const clock = getComputedStyle(el, "::after");
+      const style = getComputedStyle(el);
+      const corner = Number.parseFloat(own ? style.borderBottomLeftRadius : style.borderBottomRightRadius);
+      const inlineInset = Number.parseFloat(own ? clock.paddingInlineStart : clock.paddingInlineEnd);
+      const blockInset = Number.parseFloat(clock.paddingBlockEnd);
+      return {
+        rendered: clock.content,
+        contentLeft: content.left - shell.left,
+        contentTop: content.top - shell.top,
+        inlineRoom: (shell.width - content.width) / 2,
+        fitsCorner: Math.hypot(Math.max(0, corner - inlineInset), Math.max(0, corner - blockInset)) <= corner,
+      };
+    }, own);
+    assert.equal(box.rendered, '"21:55"', id);
+    if (id.endsWith("-photo")) {
+      assert.ok(box.contentTop < 1, id + " 图片在时间上方");
+    } else {
+      assert.equal(box.contentLeft > box.inlineRoom, own, id + " 时间在消息的对应一侧");
+    }
+    assert.ok(box.fitsCorner, id + " 时间避开气泡圆角");
+  }
 }

@@ -10,6 +10,39 @@
 }
 
 @layer virga-surfaces {
+  :root[data-virga] [data-virga-sent-at]::after {
+    /* Keep the label clear of rounded corners on clipped bubbles. */
+    --virga-time-edge: max(6px, calc(var(--virga-bubble-radius, 13px) / 2 + 1px));
+    content: attr(data-virga-sent-at) !important;
+    display: block;
+    position: static;
+    align-self: end;
+    justify-self: end;
+    grid-column: 1 / -1;
+    inline-size: max-content;
+    flex: none;
+    margin-block-start: auto;
+    margin-inline-start: auto;
+    padding-block: 2px 4px;
+    padding-inline: 6px var(--virga-time-edge);
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    color: inherit;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+  }
+  :root[data-virga] [data-virga-sent-at-placement~="start"]::after {
+    justify-self: start;
+    margin-inline: 0 auto;
+    padding-inline: var(--virga-time-edge) 6px;
+  }
+  :root[data-virga] [data-virga-sent-at-placement~="first"]::after {
+    order: -1;
+  }
+
   /* Collapse only the touching edges, from the virtual row to its message card. */
   :root[data-virga] [data-virga-message-spacing] {
     min-block-size: 0 !important;
