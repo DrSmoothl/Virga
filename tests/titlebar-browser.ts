@@ -176,38 +176,35 @@ export async function verifyTitlebar(page: Page, settings: Page) {
     return title.top >= clip.top && title.bottom <= clip.bottom;
   }));
   const sidebarWidth = (width: string) => finder.evaluate(async (control, width) => {
-    const bar = control.closest(".global-container")!.querySelector(":scope > .container-topbar")!;
-    (control.parentElement as HTMLElement).style.flexBasis = width;
-    for (let attempt = 0; attempt < 12; attempt++) {
-      await new Promise(requestAnimationFrame);
-      const transition = bar.getAnimations().find(a =>
-        a instanceof CSSTransition && /^(height|block-size)$/.test(a.transitionProperty),
-      );
-      if (!transition) continue;
-      transition.updatePlaybackRate(0.1);
-      transition.pause();
-      transition.currentTime = Number(transition.effect!.getTiming().duration) / 2;
-      const halfway = control.getBoundingClientRect().top;
-      transition.finish();
-      return halfway;
-    }
     const shell = control.closest(".global-container")!;
-    throw new Error("侧栏宽度跨过紧凑阈值时没有顶栏过渡 " + JSON.stringify({
-      width, finderWidth: control.getBoundingClientRect().width,
-      finderTop: control.getBoundingClientRect().top,
-      compact: shell.hasAttribute("data-virga-compact-titlebar"),
-      ready: shell.hasAttribute("data-virga-titlebar-ready"),
-      activeMotion: document.documentElement.hasAttribute("data-virga-motion"),
-      hidden: document.hidden, reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
-      duration: getComputedStyle(bar).transitionDuration,
-      property: getComputedStyle(bar).transitionProperty,
-      animations: bar.getAnimations().map(a => a instanceof CSSTransition ? a.transitionProperty : a.id),
-    }));
+    const bar = shell.querySelector<HTMLElement>(":scope > .container-topbar")!;
+    const before = control.getBoundingClientRect().top;
+    const finished = new Promise<number>((resolve, reject) => {
+      const events = new AbortController();
+      const timeout = window.setTimeout(() => {
+        events.abort();
+        reject(new Error("侧栏宽度变化后顶栏高度过渡未完成 " + JSON.stringify({
+          width, before, after: control.getBoundingClientRect().top,
+          compact: shell.hasAttribute("data-virga-compact-titlebar"),
+          duration: getComputedStyle(bar).transitionDuration,
+        })));
+      }, 5_000);
+      bar.addEventListener("transitionend", (event) => {
+        if (event.target !== bar ||
+            (event.propertyName !== "height" && event.propertyName !== "block-size")) return;
+        window.clearTimeout(timeout);
+        events.abort();
+        resolve(event.elapsedTime);
+      }, { signal: events.signal });
+    });
+    (control.parentElement as HTMLElement).style.flexBasis = width;
+    const duration = await finished;
+    return { before, after: control.getBoundingClientRect().top, duration };
   }, width);
-  for (const width of ["132px", "270px"]) {
-    const halfway = await sidebarWidth(width);
-    assert.ok(halfway > 0 && halfway < compactHeight, String(halfway));
-    await settleTitlebar();
+  for (const [width, start, end] of [["132px", 0, full.y], ["270px", full.y, 0]] as const) {
+    const { before, after, duration } = await sidebarWidth(width);
+    assert.ok(duration > 0, width);
+    assert.deepEqual([before, after], [start, end], width);
   }
   const roster = page.locator(".recent-contact");
   await page.emulateMedia({ reducedMotion: "reduce" });
