@@ -3,9 +3,10 @@
     --virga-titlebar-height: max(var(--virga-toolbar-height), env(titlebar-area-height, 0px));
   }
 
+  /* Keep compact titlebar overrides at their existing specificity. */
   :root[data-virga] :is(
     .global-container > .container-topbar,
-    .window-title-bar--app.window-title-bar--ghost
+    .window-title-bar--app.window-title-bar--ghost:where(.window-title-bar--mac)
   ) {
     block-size: var(--virga-titlebar-height) !important;
     min-block-size: var(--virga-titlebar-height) !important;
@@ -14,7 +15,7 @@
 
   :root[data-virga] :is(
     .global-container > .container-topbar > .topbar-content,
-    .window-title-bar--app.window-title-bar--ghost > .window-control-area,
+    .window-title-bar--app.window-title-bar--ghost:where(.window-title-bar--mac) > .window-control-area,
     .global-container :is(.recent-contact, .contact-layout__left-area) .contact-top-bar,
     .global-container .container-content-view :is(.chat-header, .sys-notify .panel-header)
   ) {
@@ -27,7 +28,7 @@
     border-block-width: 0 !important;
   }
 
-  :root[data-virga] .window-title-bar--app.window-title-bar--ghost > .window-control-area {
+  :root[data-virga] .window-title-bar--app.window-title-bar--ghost:where(.window-title-bar--mac) > .window-control-area {
     margin-inline-end: var(--virga-toolbar-padding-block) !important;
   }
 

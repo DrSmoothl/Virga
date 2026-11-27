@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import type { Page } from "playwright-core";
 import { updateAppearance, waitForAppearance } from "./browser-settings.ts";
 
-export const titlebarFixture = `
+const titlebarLayout = `
 <style>
   #layout.titlebar-fixture { display: flex; flex-direction: column; height: 450px; }
   .titlebar-fixture .container-content { display:flex; flex:1; margin:0 4px 4px; overflow:hidden; }
@@ -38,12 +38,11 @@ export const titlebarFixture = `
   .titlebar-ghost .window-title-bar__mac-spacer { width:86px; }
   .titlebar-ghost [data-testid="native-traffic-lights"] { position:absolute; inset:9px auto auto 9px; width:60px; height:14px; }
   .titlebar-ghost .window-control-area { pointer-events:auto; display:flex; align-items:center; justify-content:center; width:76px; block-size:40px; }
+  .titlebar-ghost.window-title-bar--win { justify-content:flex-end; }
+  .window-title-bar--win .window-control-area { width:138px; }
+  .window-title-bar--win .window-control-area > button { flex:0 0 46px; block-size:100%; border:0; }
+  .win-qq .topbar-content { padding-inline:12px 138px; }
 </style>
-<div class="mac-qq">
-  <div class="titlebar-ghost window-title-bar window-title-bar--app window-title-bar--mac window-title-bar--ghost">
-    <i class="window-title-bar__mac-spacer" aria-hidden="true"><i data-testid="native-traffic-lights"></i></i>
-    <div class="window-control-area"><button type="button" aria-label="窗口操作">窗口</button></div>
-  </div>
   <div id="layout" class="global-container titlebar-fixture">
     <header class="topbar container-topbar">
       <div class="topbar-content">
@@ -82,8 +81,62 @@ export const titlebarFixture = `
         </div>
       </div>
     </div>
+  </div>`;
+
+export const titlebarFixture = `
+<div class="mac-qq">
+  <div class="titlebar-ghost window-title-bar window-title-bar--app window-title-bar--mac window-title-bar--ghost">
+    <i class="window-title-bar__mac-spacer" aria-hidden="true"><i data-testid="native-traffic-lights"></i></i>
+    <div class="window-control-area"><button type="button" aria-label="窗口操作">窗口</button></div>
   </div>
+  ${titlebarLayout}
 </div>`;
+
+export const windowsTitlebarFixture = `
+<div class="win-qq">
+  <div class="titlebar-ghost window-title-bar window-title-bar--app window-title-bar--win window-title-bar--ghost">
+    <div class="window-control-area">
+      <button type="button" aria-label="最小化">−</button>
+      <button type="button" aria-label="最大化">□</button>
+      <button type="button" aria-label="关闭">×</button>
+    </div>
+  </div>
+  ${titlebarLayout}
+</div>`;
+
+export async function verifyWindowsTitlebar(page: Page) {
+  const caption = page.locator(".window-title-bar--win");
+  const controls = caption.locator(".window-control-area");
+  for (const width of [820, 440]) {
+    await page.setViewportSize({ width, height: 920 });
+    const layout = await controls.evaluate(el => {
+      const edge = document.documentElement.clientWidth;
+      const caption = el.parentElement!.getBoundingClientRect();
+      const { top, right, height } = el.getBoundingClientRect();
+      const hit = (x: number, y: number) =>
+        document.elementFromPoint(x, y)?.closest("button")?.getAttribute("aria-label") ?? null;
+      return {
+        edge,
+        captionHeight: caption.height,
+        top, right, height,
+        cornerHit: hit(edge - 1, 1),
+        buttonHits: Array.from(el.querySelectorAll("button"), button => {
+          const { x, y, width, height } = button.getBoundingClientRect();
+          return hit(x + width / 2, y + height / 2);
+        }),
+      };
+    });
+    assert.equal(layout.cornerHit, "关闭", `Windows 右上角应命中关闭按钮（${width}px）`);
+    assert.equal(layout.right, layout.edge);
+    assert.equal(layout.top, 0);
+    assert.equal(layout.height, 40);
+    assert.equal(layout.captionHeight, 40);
+    assert.deepEqual(layout.buttonHits, ["最小化", "最大化", "关闭"]);
+    const header = await page.locator(".container-topbar").boundingBox();
+    const search = await page.getByRole("searchbox", { name: "搜索会话" }).boundingBox();
+    assert.ok(header && search && search.y >= header.y + header.height);
+  }
+}
 
 export async function verifyTitlebar(page: Page, settings: Page) {
   await settings.getByRole("button", { name: "界面", exact: true }).click();

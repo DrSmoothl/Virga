@@ -8,7 +8,12 @@ import { selectMode, updateAppearance, waitForAppearance } from "./browser-setti
 import { filterFixture, interfaceFixture, interfaceFixtureCSS, verifyInterface } from "./interface-browser.ts";
 import { liteLoaderSettingsFixture, verifyLiteLoaderSettings } from "./liteloader-browser.ts";
 import { shellFixture, verifyShell } from "./shell-browser.ts";
-import { titlebarFixture, verifyTitlebar } from "./titlebar-browser.ts";
+import {
+  titlebarFixture,
+  verifyTitlebar,
+  verifyWindowsTitlebar,
+  windowsTitlebarFixture,
+} from "./titlebar-browser.ts";
 import {
   detachedFixture,
   verifyPinned,
@@ -30,6 +35,7 @@ const nativeMixedBubble = 'style="background:#176e91 linear-gradient(#147caa,#17
 const pages = {
   shell: shellFixture,
   titlebar: titlebarFixture,
+  "windows-titlebar": windowsTitlebarFixture,
   chat: chatFixture,
   workspace: workspaceFixture,
   detached: detachedFixture,
@@ -73,6 +79,8 @@ try {
   await context.addInitScript(() => {
     if (location.pathname === "/titlebar")
       Object.defineProperty(navigator, "platform", { value: "MacIntel" });
+    if (location.pathname === "/windows-titlebar")
+      Object.defineProperty(navigator, "platform", { value: "Win32" });
     const store = window as unknown as {
       readAppearance(fallback: Saved): Promise<unknown>;
       writeAppearance(value: Saved): Promise<boolean>;
@@ -294,6 +302,7 @@ try {
   await verifyShell(await open("shell"));
   const titlebar = await open("titlebar#/main/message");
   await verifyTitlebar(titlebar, await open("titlebar#/settings"));
+  await verifyWindowsTitlebar(await open("windows-titlebar#/main/message"));
   await verifyAvatarGroups(chatPage, classic);
   const notify = await open("notify#/blank");
   await notify.evaluate(() => { history.replaceState(null, "", "#/notify-filter/"); });
@@ -312,7 +321,7 @@ try {
   console.log(
     "Chromium " +
       browser.version() +
-      " · 聊天与表情面板、群成员、通知、浮动导航、频道、跨窗口色板同步与自动保存通过",
+      " · 聊天与表情面板、群成员、通知、浮动导航、顶栏、频道、跨窗口色板同步与自动保存通过",
   );
 } finally {
   await browser.close();
