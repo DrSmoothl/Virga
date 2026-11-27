@@ -123,6 +123,8 @@ function styleReport(
     merged +
     " 个头像 · 已置底 " +
     host.querySelectorAll("[data-virga-avatar-anchor]").length +
+    " 个 · 已折叠组内时分条 " +
+    host.querySelectorAll("[data-virga-merged-clock]").length +
     " 个\n聊天动效 · 切换 " +
     motion.conversation +
     " 次，新消息 " +

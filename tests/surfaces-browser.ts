@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import type { Page } from "playwright-core";
+import type { Locator, Page } from "playwright-core";
 import { firstRecord, type Saved } from "../packages/theme/src/config.ts";
 import { updateAppearance } from "./browser-settings.ts";
 
@@ -166,4 +166,80 @@ export async function verifyAvatarGroups(page: Page, settings: Page) {
   });
   const [atLast, limit, lastBubble] = await geometry();
   assert.ok(Math.abs(atLast - Math.min(limit - 4, lastBubble)) < 1);
+  await verifyGroupSpacing(page, track, avatars);
+}
+
+async function verifyGroupSpacing(page: Page, track: Locator, setting: Locator) {
+  await page.addStyleTag({ content: `
+    .group-fixture > .ml-item { margin-block: 3px; padding-block: 2px; }
+    .group-fixture .message { display: block; margin: 0; padding-block-end: 6px; }
+    .group-fixture .message-container { margin-block: 2px; }
+    .group-fixture .message__timestamp { margin-block: 8px; text-align: center; }
+    .group-fixture .msg-content-container { height: auto; }
+  ` });
+  await track.evaluate((el) => {
+    el.classList.add("group-fixture");
+    const clock = (value: string) =>
+      `<div class="message__timestamp"><span class="babble">${value}</span></div>`;
+    const mailCard = '<div class="ark-view-message"><button type="button">邮件详情</button></div>';
+    const message = (id: string, time = "", content = '<span class="text-element">下一条</span>') =>
+      `<div class="ml-item" id="${id}"><div class="message">${time}
+        <div class="message-native"><article class="message-container">
+          <span class="avatar-span"><span class="avatar" data-uid="sender"></span></span>
+          <div class="msg-content-container container--others">${content}</div>
+        </article></div>
+      </div></div>`;
+    el.innerHTML =
+      message("group-first", clock("16:32")) +
+      message("group-next") +
+      `<div class="ml-item" id="group-clock">${clock("16:37")}</div>` +
+      message("group-photo", "", '<img width="72" height="48" alt="">') +
+      message("group-last", clock("16:45")) +
+      message("group-after-pause", clock("17:12"), mailCard) +
+      message("group-after-date", clock("昨天 17:30"), '<button type="button">邮件详情</button>') +
+      '<div class="ml-item" role="separator">新消息</div>' +
+      message("group-after-unread", "", '<span class="text-element">附带说明</span>' + mailCard);
+    el.querySelector("#group-after-pause .msg-content-container")!
+      .classList.add("ark-msg-content-container");
+
+  });
+  await page.waitForFunction(() => !!document.querySelector(
+    "#group-first [data-virga-message-group=first]",
+  ));
+  const gaps = () => track.evaluate((el) => {
+    const boxes = ["group-first", "group-next", "group-photo", "group-last"].map(
+      (id) => el.querySelector("#" + id + " .msg-content-container")!.getBoundingClientRect(),
+    );
+    return boxes.slice(1).map((box, i) => box.top - boxes[i]!.bottom);
+  });
+  assert.deepEqual(await gaps(), [4, 4, 4], "连续消息气泡之间的距离");
+  const bubble = (id: string) => track.locator("#" + id + " .msg-content-container");
+  assert.equal(await bubble("group-photo").evaluate(el => getComputedStyle(el).backgroundColor), "rgba(0, 0, 0, 0)");
+  assert.equal(await track.locator("#group-clock").isVisible(), false);
+  assert.equal(await track.locator("#group-last .message__timestamp").isVisible(), false);
+  for (const selector of [
+    "#group-first .message__timestamp",
+    "#group-after-pause .message__timestamp",
+    "#group-after-date .message__timestamp",
+    '[role="separator"]',
+  ]) {
+    assert.ok(await track.locator(selector).isVisible(), selector);
+  }
+  for (const id of ["group-after-pause", "group-after-date", "group-after-unread"])
+    assert.equal(await track.locator("#" + id + " [data-virga-message-group]").count(), 0);
+
+  const clock = track.locator("#group-clock .babble");
+  await clock.evaluate((el) => { el.firstChild!.nodeValue = "昨天 16:37"; });
+  await clock.waitFor({ state: "visible" });
+  assert.equal(await track.locator("#group-next [data-virga-message-group=last]").count(), 1);
+  await clock.evaluate((el) => { el.firstChild!.nodeValue = "16:37"; });
+  await clock.waitFor({ state: "hidden" });
+  assert.deepEqual(await gaps(), [4, 4, 4]);
+
+  await updateAppearance(page, () => setting.uncheck());
+  await clock.waitFor({ state: "visible" });
+  assert.ok((await gaps()).every((gap) => gap > 4));
+  await updateAppearance(page, () => setting.check());
+  await clock.waitFor({ state: "hidden" });
+  assert.deepEqual(await gaps(), [4, 4, 4]);
 }

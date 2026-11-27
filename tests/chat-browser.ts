@@ -213,18 +213,30 @@ export async function verifyChat(page: Page, settings: Page) {
   const incoming = await mutate("append");
   assert.deepEqual(incoming, [{ id: "virga-chat-in", virtualRow: false }]);
   assert.equal(
-    await page.evaluate(() =>
-      (document.getAnimations().find((a) => a.id === "virga-chat-in")
-        ?.effect as KeyframeEffect).getKeyframes()[0]?.translate,
-    ),
+    await page.evaluate(() => {
+      const animation = document.getAnimations().find((a) => a.id === "virga-chat-in");
+      animation?.pause();
+      return (animation?.effect as KeyframeEffect).getKeyframes()[0]?.translate;
+    }),
     "-12px 10px",
   );
-  await settle();
   const bottom = () =>
     page.locator(".chat-msg-area").evaluate(async (el) => {
       el.scrollTop = el.scrollHeight;
       await new Promise((r) => requestAnimationFrame(r));
     });
+  await bottom();
+  const continuation = await timeline.evaluate((el) => {
+    const tail = el.lastElementChild!;
+    tail.setAttribute("data-sender-id", "confirmed-sender");
+    tail.querySelector(".identity")!.classList.add("avatar");
+    return tail.outerHTML;
+  });
+  noArrivals(await mutate("append", continuation));
+  assert.equal(
+    await timeline.locator(".ml-item").last().getAttribute("data-virga-message-spacing"),
+    "last",
+  );
   await bottom();
   assert.deepEqual(await mutate("append", outgoing), [
     { id: "virga-chat-out", virtualRow: false },

@@ -1,5 +1,6 @@
 import type { Settings } from "@virga/theme";
 
+import { messageSpacingMark } from "./avatars.ts";
 import {
   findTimeline,
   messageBubble,
@@ -49,7 +50,7 @@ function lastRow(host: Element) {
     if (el.matches(rows)) return el;
   return null;
 }
-export function chatMotion(win: Window) {
+export function chatMotion(win: Window, flushMessageLayout: () => void) {
   const media = win.matchMedia("(prefers-reduced-motion: reduce)");
   const dragEvents = new AbortController();
   const active = new Set<Animation>();
@@ -96,6 +97,7 @@ export function chatMotion(win: Window) {
       changeFrame = 0;
       stopEffects();
       if (dragging || !host || !list || !allow("conversationMotion")) return;
+      flushMessageLayout();
       const viewportRect = timelineViewport(list, host).getBoundingClientRect();
       const sample: Element[] = [];
       for (
@@ -105,7 +107,11 @@ export function chatMotion(win: Window) {
       ) {
         const rect = row.getBoundingClientRect();
         if (rect.bottom < viewportRect.top) break;
-        if (rect.top < viewportRect.bottom && row.matches(rows)) {
+        if (
+          rect.top < viewportRect.bottom &&
+          row.matches(rows) &&
+          !row.hasAttribute(messageSpacingMark)
+        ) {
           const bubble = messageBubble(row);
           if (bubble) sample.push(bubble);
         }
@@ -297,7 +303,16 @@ export function chatMotion(win: Window) {
         cursor = cursor.previousElementSibling;
       }
       if (cursor !== prior) return;
+      flushMessageLayout();
+      for (const animation of active) {
+        const target = (animation.effect as KeyframeEffect | null)?.target;
+        if (target?.closest("[" + messageSpacingMark + "]")) {
+          animation.cancel();
+          active.delete(animation);
+        }
+      }
       for (const row of appended) {
+        if (row.hasAttribute(messageSpacingMark)) continue;
         const bubble = messageBubble(row);
         if (bubble) {
           plays.message++;

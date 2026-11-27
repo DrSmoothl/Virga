@@ -48,8 +48,8 @@ export function startTheme(api: ConfigAPI, win: Window = window) {
     typeof BroadcastChannel === "function"
       ? new BroadcastChannel("virga:appearance:v1")
       : null;
-  const motion = chatMotion(win);
   const avatars = avatarGroups(win);
+  const motion = chatMotion(win, avatars.flushPending);
   const composer = chatComposer(win);
   const navigation = navigationRail(win, () =>
     update((s) => ({ ...s, navigation: defaultNavigation() })),
@@ -113,8 +113,8 @@ export function startTheme(api: ConfigAPI, win: Window = window) {
     channels.configure(settings);
     pins.configure(settings.hidePinnedToggle);
     unbindConversation ??= bindConversation(win, (pane, roster) => {
-      motion.attach(pane, roster);
       avatars.attach(pane);
+      motion.attach(pane, roster);
       composer.attach(pane);
       pins.attach(roster);
       titlebar.attach(roster);

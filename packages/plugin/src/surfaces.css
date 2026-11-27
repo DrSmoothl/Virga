@@ -10,6 +10,25 @@
 }
 
 @layer virga-surfaces {
+  /* Collapse only the touching edges, from the virtual row to its message card. */
+  :root[data-virga] [data-virga-message-spacing] {
+    min-block-size: 0 !important;
+  }
+  :root[data-virga] [data-virga-message-spacing]:not([data-virga-message-spacing="first"]) {
+    margin-block-start: 0 !important;
+    padding-block-start: 0 !important;
+  }
+  :root[data-virga] [data-virga-message-spacing]:not([data-virga-message-spacing="last"]) {
+    margin-block-end: 0 !important;
+    padding-block-end: 0 !important;
+  }
+  :root[data-virga] [data-virga-message-group]:not([data-virga-message-group="first"]) {
+    padding-block-start: 4px !important;
+  }
+  :root[data-virga] [data-virga-merged-clock] {
+    display: none !important;
+  }
+
   :root[data-virga-bubbles="directional"] [data-virga-message-group] {
     --virga-join: min(4px, calc(var(--virga-bubble-radius) * 0.35));
   }
