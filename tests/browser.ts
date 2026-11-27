@@ -247,6 +247,34 @@ try {
       .locator("body")
       .evaluate((el, name) => el.removeAttribute(name), attr);
   }
+  await classic.getByRole("button", { name: "文字与形状", exact: true }).click();
+  const fontSize = classic.getByRole("slider", { name: "消息字号" });
+  assert.equal(await fontSize.getAttribute("aria-valuetext"), "14px");
+  assert.equal(await fontSize.evaluate(el => getComputedStyle(el).appearance), "none");
+  const fontRevision = await updateAppearance(classic, () => fontSize.press("ArrowRight"));
+  await waitForAppearance(tokens, fontRevision);
+  assert.equal(await fontSize.getAttribute("aria-valuetext"), "15px");
+  assert.equal(await fontSize.evaluate(el => getComputedStyle(el).outlineWidth), "2px");
+  assert.equal(await tokens.locator("html").evaluate(el =>
+    getComputedStyle(el).getPropertyValue("--virga-font-size"),
+  ), "15px");
+  const hit = (await fontSize.boundingBox())!;
+  assert.ok(hit.height >= 24);
+  await updateAppearance(classic, () =>
+    fontSize.click({ position: { x: hit.width - 2, y: hit.height / 2 } }),
+  );
+  assert.equal(await fontSize.getAttribute("aria-valuetext"), "24px");
+  assert.equal(await fontSize.evaluate(el =>
+    getComputedStyle(el).getPropertyValue("--slider-progress"),
+  ), "100%");
+  await updateAppearance(classic, async () => {
+    await fontSize.press("Home");
+    await fontSize.press("ArrowRight");
+    await fontSize.press("ArrowRight");
+  });
+  assert.equal(await fontSize.getAttribute("aria-valuetext"), "14px");
+  await classic.getByRole("button", { name: "配色", exact: true }).click();
+
   const darkRevision = await updateAppearance(classic, () => selectMode(classic, "深色"));
   await waitForAppearance(tokens, darkRevision);
   await tokens.emulateMedia({ colorScheme: "light" });

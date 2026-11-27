@@ -100,6 +100,8 @@ function Slider({
   onChange: (v: number) => void;
 }) {
   const r = ranges[name];
+  const displayValue = value + r.unit;
+  const progress = (100 * (value - r.min)) / (r.max - r.min);
   return (
     <label class="slider">
       <span>{r.label}</span>
@@ -110,12 +112,11 @@ function Slider({
         max={r.max}
         step={r.step}
         value={value}
+        aria-valuetext={displayValue}
+        style={{ "--slider-progress": progress + "%" }}
         onInput={(e) => onChange(e.currentTarget.valueAsNumber)}
       />
-      <output>
-        {value}
-        {r.unit}
-      </output>
+      <output aria-hidden="true">{displayValue}</output>
     </label>
   );
 }

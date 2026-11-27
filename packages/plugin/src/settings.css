@@ -455,8 +455,58 @@ footer {
   border-radius: 50%;
 }
 .slider input {
-  width: clamp(60px, 26%, 148px);
-  accent-color: var(--accent);
+  --slider-thumb: 14px;
+  --slider-track: 4px;
+  --slider-rest: color-mix(in srgb, var(--ink) 24%, var(--paper));
+  appearance: none;
+  inline-size: clamp(60px, 26%, 148px);
+  block-size: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+.slider input:dir(rtl) {
+  --slider-direction: to left;
+}
+.slider input::-webkit-slider-runnable-track {
+  block-size: var(--slider-track);
+  border-radius: 999px;
+  background: linear-gradient(
+    var(--slider-direction, to right),
+    var(--accent) 0 var(--slider-progress),
+    var(--slider-rest) var(--slider-progress) 100%
+  );
+}
+.slider input::-webkit-slider-thumb {
+  appearance: none;
+  inline-size: var(--slider-thumb);
+  block-size: var(--slider-thumb);
+  margin-block-start: calc((var(--slider-track) - var(--slider-thumb)) / 2);
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  background-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.slider input:is(:hover, :active)::-webkit-slider-thumb {
+  background-color: color-mix(in srgb, var(--accent) 82%, var(--ink));
+}
+@media (forced-colors: active) {
+  .slider input {
+    forced-color-adjust: none;
+    outline-color: Highlight;
+  }
+  .slider input::-webkit-slider-runnable-track {
+    background: CanvasText;
+  }
+  .slider input::-webkit-slider-thumb,
+  .slider input:is(:hover, :active)::-webkit-slider-thumb {
+    border-color: Canvas;
+    background: Highlight;
+    box-shadow: 0 0 0 1px Highlight;
+  }
 }
 .slider output {
   min-width: 3.7em;
