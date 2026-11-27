@@ -25,6 +25,8 @@ const bundle = await readFile(
   new URL("../dist/plugin/renderer.js", import.meta.url),
   "utf8",
 );
+const imageAndLink = '<div class="message-content"><span class="pic-element"><img alt="" width="24" height="24"></span><span class="text-element"><a href="#image">图片附带链接</a></span></div>';
+const nativeMixedBubble = 'style="background:#176e91 linear-gradient(#147caa,#176e91);padding:0;border-radius:17px"';
 const pages = {
   shell: shellFixture,
   titlebar: titlebarFixture,
@@ -37,6 +39,9 @@ const pages = {
   notify: filterFixture,
   components: `<div id="layout"><aside class="sidebar-nav"></aside><section class="recent-contact"></section><main class="chat-msg-area">
     <div class="message"><div class="message-content__wrapper" id="wrapper"><div class="msg-content-container container--self" id="bubble"><div class="message-content"><span class="text-element">雨还没落到地上。</span></div></div></div></div>
+    <div class="msg-content-container container--others" id="incoming"><div class="message-content"><span class="text-element">看到了。</span></div></div>
+    <div class="msg-content-container container--self" id="mixed-outgoing" ${nativeMixedBubble}>${imageAndLink}</div>
+    <div class="message-peer"><div class="message-content__wrapper" id="mixed-incoming" ${nativeMixedBubble}>${imageAndLink}</div></div>
     <div class="msg-content-container container--others" id="photo"><img alt="" width="24" height="24"></div></main></div>`,
   empty: `<div id="layout" class="messenger"><aside class="sidebar-nav"></aside>
     <section class="rail-column"><div role="list" aria-label="会话列表"><div role="listitem" aria-selected="true">悬雨主题小组</div></div></section>
@@ -140,6 +145,26 @@ try {
       .locator(selector)
       .evaluate((el) => getComputedStyle(el).backgroundColor);
   assert.equal(await color(classic, "#bubble"), "rgb(82, 109, 128)");
+  const bubblePaint = (selector: string) =>
+    classic.locator(selector).evaluate((el) => {
+      const { backgroundColor, backgroundImage, color } = getComputedStyle(el);
+      return { backgroundColor, backgroundImage, color };
+    });
+  const verifyMixedBubbles = async () => {
+    for (const [plain, mixed] of [
+      ["#bubble", "#mixed-outgoing"],
+      ["#incoming", "#mixed-incoming"],
+    ] as const) {
+      assert.deepEqual(await bubblePaint(mixed), await bubblePaint(plain), mixed);
+      const layout = await classic.locator(mixed).evaluate((el) => {
+        const { paddingTop, borderTopRightRadius } = getComputedStyle(el);
+        return [paddingTop, borderTopRightRadius];
+      });
+      assert.deepEqual(layout, ["0px", "17px"], mixed + " image layout");
+    }
+    assert.equal(await color(classic, "#photo"), "rgba(0, 0, 0, 0)");
+  };
+  await verifyMixedBubbles();
   assert.equal(await color(tokens, "#guest"), "rgb(237, 240, 237)");
   assert.equal(
     await classic
@@ -226,6 +251,7 @@ try {
   await waitForAppearance(tokens, darkRevision);
   await tokens.emulateMedia({ colorScheme: "light" });
   assert.equal(await color(tokens, "#bubble"), "rgb(159, 181, 195)");
+  await verifyMixedBubbles();
   await classic.reload();
   await mount(classic);
   await classic.getByRole("button", { name: "配色", exact: true }).click();

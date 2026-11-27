@@ -121,64 +121,53 @@
     )
   ) {
   border-radius: var(--virga-bubble-radius) !important;
+  border-start-start-radius: var(
+    --virga-bubble-start-corner,
+    var(--virga-bubble-radius)
+  ) !important;
+  border-start-end-radius: var(
+    --virga-bubble-end-corner,
+    var(--virga-bubble-radius)
+  ) !important;
   padding-block: var(--virga-bubble-padding) !important;
 }
-:root[data-virga]
-  :is(
-    .msg-content-container.container--others,
-    :is(.message-peer, .message-other, .message-container--received)
-      :is(
-        .msg-content-container,
-        .message-content__wrapper:not(:has(.msg-content-container))
-      )
-  ):has(.text-element):not(
-    :has(
-      img,
-      video,
-      canvas,
-      .pic-element,
-      .file-element,
-      .ark-element,
-      .reply-element
-    )
-  ) {
-  background-color: var(--virga-incoming) !important;
-  color: var(--virga-incoming-text) !important;
-  border-start-start-radius: var(
-    --virga-person-corner,
-    var(--virga-bubble-radius)
-  ) !important;
-}
-:root[data-virga]
-  :is(
-    .msg-content-container.container--self,
+/* Apply the sender palette to text and photo captions. */
+@layer virga-surfaces {
+  :root[data-virga]
     :is(
-        .message-self,
-        .message-container--self,
-        .message--self,
-        .message-content--self
-      )
+      .msg-content-container.container--others,
+      :is(.message-peer, .message-other, .message-container--received)
+        :is(
+          .msg-content-container,
+          .message-content__wrapper:not(:has(.msg-content-container))
+        )
+    ):has(.text-element):not(
+      :has(video, canvas, .file-element, .ark-element, .reply-element)
+    ) {
+    --virga-bubble-start-corner: var(--virga-person-corner);
+    background: var(--virga-incoming) !important;
+    color: var(--virga-incoming-text) !important;
+  }
+  :root[data-virga]
+    :is(
+      .msg-content-container.container--self,
       :is(
-        .msg-content-container,
-        .message-content__wrapper:not(:has(.msg-content-container))
-      )
-  ):has(.text-element):not(
-    :has(
-      img,
-      video,
-      canvas,
-      .pic-element,
-      .file-element,
-      .ark-element,
-      .reply-element
-    )
-  ) {
-  background-color: var(--virga-outgoing) !important;
-  color: var(--virga-outgoing-text) !important;
-  border-start-end-radius: var(
-    --virga-person-corner,
-    var(--virga-bubble-radius)
-  ) !important;
+          .message-self,
+          .message-container--self,
+          .message--self,
+          .message-content--self
+        )
+        :is(
+          .msg-content-container,
+          .message-content__wrapper:not(:has(.msg-content-container))
+        )
+    ):has(.text-element):not(
+      :has(video, canvas, .file-element, .ark-element, .reply-element)
+    ) {
+    --virga-bubble-end-corner: var(--virga-person-corner);
+    background: var(--virga-outgoing) !important;
+    color: var(--virga-outgoing-text) !important;
+  }
 }
 :root[data-virga] :is(.q-avatar__image, .avatar-img, .avatar img) {
   border-radius: var(--virga-avatar-radius) !important;
